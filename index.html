@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ABC 123">
+<meta name="theme-color" content="#FFC93C">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>ABC 123</title>
+<style>
+  :root {
+    --bg: #FFF6E5;
+    --ink: #3B2A1A;
+    --soft: #8A735C;
+    --card: #FFFFFF;
+    --accent: #FFC93C;       /* the child's favorite: sunny yellow */
+    --accent-deep: #E0A800;
+    --good: #3DBE7A;
+    --hint: #8FD3FF;         /* hint glow is blue so it never looks like the main yellow */
+    --sky: #6EC1FF;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+    font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Arial Rounded MT Bold", system-ui, sans-serif;
+    overscroll-behavior: none; touch-action: manipulation; }
+  #app { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); gap: 18px; text-align: center; }
+  .toshi { width: min(34vw, 180px); height: min(34vw, 180px); border-radius: 50%; overflow: hidden; flex: none;
+    background: #F2D6B3; box-shadow: 0 6px 0 #E3BE92; transition: transform .3s; }
+  .toshi img, .toshi svg { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .toshi.small { width: min(18vw, 90px); height: min(18vw, 90px); }
+  .toshi.hop { animation: hop .6s ease 2; }
+  @keyframes hop { 50% { transform: translateY(-24px) rotate(-6deg); } }
+  .big-letter { font-size: min(36vw, 220px); line-height: 1; font-weight: 800; color: var(--ink);
+    background: var(--accent); border-radius: 40px; padding: 10px 40px 18px; box-shadow: 0 8px 0 var(--accent-deep); }
+  .word { font-size: min(8vw, 44px); font-weight: 700; }
+  .word .ja { color: var(--soft); margin-left: .4em; }
+  .emoji { font-size: min(18vw, 110px); line-height: 1; }
+  .row { display: flex; gap: min(4vw, 24px); justify-content: center; flex-wrap: wrap; }
+  .btn { border: none; border-radius: 28px; background: var(--card); color: var(--ink); font: inherit; font-weight: 800;
+    min-width: 96px; min-height: 96px; padding: 12px 20px; box-shadow: 0 6px 0 #E8D9C2; cursor: pointer; }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #E8D9C2; }
+  .btn.go { background: var(--accent); color: var(--ink); box-shadow: 0 6px 0 var(--accent-deep); font-size: 44px; min-width: 140px; }
+  .btn.choice { font-size: min(20vw, 110px); width: min(26vw, 170px); height: min(26vw, 170px); }
+  .btn.good { background: var(--good); color: #fff; box-shadow: 0 6px 0 #2A9A5E; }
+  .btn.glow { background: var(--hint); box-shadow: 0 0 0 8px rgba(143,211,255,.5), 0 6px 0 #5AA9DA; }
+  .btn.dim { opacity: .35; }
+  .btn.card { width: min(40vw, 260px); min-height: min(40vw, 240px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; font-size: min(6vw, 30px); }
+  .btn.card .emoji { font-size: min(16vw, 96px); }
+  .ear { position: fixed; left: max(12px, env(safe-area-inset-left)); bottom: max(12px, env(safe-area-inset-bottom));
+    width: 76px; height: 76px; min-width: 0; min-height: 0; padding: 0; font-size: 38px; border-radius: 50%; }
+  .gear { position: fixed; right: 10px; top: max(10px, env(safe-area-inset-top)); width: 44px; height: 44px; border-radius: 50%;
+    background: transparent; border: 2px dashed #E3CFAF; color: #D9C4A3; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+  .gear.holding { background: #F3E3C8; }
+  .apples { display: flex; flex-wrap: wrap; justify-content: center; gap: min(3vw, 20px); max-width: 720px; }
+  .apple { font-size: min(17vw, 100px); width: min(22vw, 130px); height: min(22vw, 130px); display: flex; align-items: center; justify-content: center;
+    border-radius: 24px; background: var(--card); box-shadow: 0 6px 0 #E8D9C2; position: relative; }
+  .apple.counted { background: #FFF0B8; box-shadow: 0 6px 0 #F2D872; }
+  .apple .tag { position: absolute; top: 4px; right: 10px; font-size: 26px; font-weight: 800; color: var(--good); }
+  .track { display: flex; gap: 4px; width: 100%; max-width: 900px; }
+  .sq { flex: 1; aspect-ratio: 1; border-radius: 12px; background: var(--card); display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: min(4.5vw, 34px); box-shadow: 0 4px 0 #E8D9C2; position: relative; }
+  .sq.passed { background: #FFF0B8; }
+  .sq.here { background: var(--accent); color: var(--ink); box-shadow: 0 4px 0 var(--accent-deep); }
+  .sq .pin { position: absolute; top: -70%; font-size: min(7vw, 44px); }
+  .die { font-size: 30px; }
+  .pips { display: grid; grid-template-columns: repeat(2, 22px); gap: 10px; justify-content: center; }
+  .pip { width: 22px; height: 22px; border-radius: 50%; background: var(--ink); }
+  .say { font-size: min(6vw, 30px); font-weight: 700; color: var(--soft); min-height: 1.4em; }
+  .bridge { display: flex; flex-direction: column; gap: 14px; font-size: min(8vw, 44px); font-weight: 800; }
+  .bridge .ja { color: var(--soft); }
+  .confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+  .confetti span { position: absolute; top: -40px; font-size: 34px; animation: fall 1.6s linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
+  .panel { background: var(--card); border-radius: 20px; padding: 20px; max-width: 560px; width: 100%; text-align: left; font-size: 17px; line-height: 1.5; }
+  .panel h2 { margin: 0 0 8px; font-size: 22px; }
+  .panel table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; }
+  .panel td { padding: 4px 6px; border-bottom: 1px solid #F0E6D6; }
+  .panel .btn { min-height: 52px; min-width: 0; font-size: 17px; border-radius: 14px; margin: 4px 4px 0 0; box-shadow: 0 3px 0 #E8D9C2; background: #FFF3E2; }
+  .muted { color: var(--soft); font-size: 15px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+'use strict';
+
+// ---------- content ----------
+// Letters in the child's-name order (plan §4-3). snd = spoken approximation of the letter sound until family recordings exist.
+const LETTERS = [
+  { L: 'D', snd: 'duh',  en: 'dog',    ja: 'いぬ',     emoji: '🐕' },
+  { L: 'Y', snd: 'yuh',  en: 'yo-yo',  ja: 'ヨーヨー', emoji: '🪀' },
+  { L: 'L', snd: 'lll',  en: 'lion',   ja: 'ライオン', emoji: '🦁' },
+  { L: 'A', snd: 'aah',  en: 'apple',  ja: 'りんご',   emoji: '🍎' },
+  { L: 'N', snd: 'nnn',  en: 'nose',   ja: 'はな',     emoji: '👃' },
+];
+// Distractors avoid shapes easily confused with the target (b/d/p/q never appear in v1).
+const DISTRACTORS = 'CEFHKMORSTUVWXZ'.split('');
+const EN_NUM = ['zero','one','two','three','four','five','six','seven','eight','nine','ten'];
+const JA_NUM = ['ぜろ','いち','に','さん','よん','ご','ろく','なな','はち','きゅう','じゅう'];
+const JA_KO = ['','いっこ','にこ','さんこ','よんこ','ごこ']; // counter for small objects
+const PRAISE = [
+  'You looked carefully!', 'You found it!', 'You kept trying!', 'Nice careful counting!', 'You did it step by step!'
+];
+const SESSIONS_PER_DAY = 2;   // soft daily cap (~15–20 min)
+const MASTERY_DAYS = 3;       // correct on 3 separate days = mastered
+
+// ---------- storage (on-device only) ----------
+const KEY = 'abc123-v1';
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; }
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+const state = Object.assign({ letters: {}, numbers: {}, sessions: {}, minutes: {}, photo: null, name: '' }, load());
+// The child's name lives only on the device (set in the parent panel) — never in the published code.
+const kid = () => state.name || 'friend';
+const today = () => new Date().toLocaleDateString('en-CA');
+function markCorrect(bucket, key) {
+  const rec = state[bucket][key] || (state[bucket][key] = { days: [], tries: 0, misses: 0 });
+  rec.tries++;
+  if (!rec.days.includes(today())) rec.days.push(today());
+  save();
+}
+function markMiss(bucket, key) {
+  const rec = state[bucket][key] || (state[bucket][key] = { days: [], tries: 0, misses: 0 });
+  rec.tries++; rec.misses++; save();
+}
+const mastered = (bucket, key) => (state[bucket][key]?.days.length || 0) >= MASTERY_DAYS;
+if ('storage' in navigator && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+
+// ---------- speech (one language per utterance, EN then JA) ----------
+let voices = [];
+function loadVoices() { voices = speechSynthesis.getVoices(); }
+if ('speechSynthesis' in window) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+function pickVoice(lang) {
+  const re = lang === 'ja' ? /^ja[-_]/i : /^en[-_]US/i;
+  const list = voices.filter(v => re.test(v.lang));
+  return list.find(v => /Kyoko|Samantha|Nicky|Google/.test(v.name)) || list[0] || null;
+}
+const wait = ms => new Promise(r => setTimeout(r, ms));
+let gen = 0; // bumped on every screen change so stale speech sequences stop
+function say(text, lang = 'en') {
+  const g = gen;
+  sayLine(text, lang === 'ja' ? text : null);
+  return new Promise(resolve => {
+    if (!('speechSynthesis' in window) || g !== gen) return resolve();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang === 'ja' ? 'ja-JP' : 'en-US';
+    const v = pickVoice(lang); if (v) u.voice = v;
+    u.rate = lang === 'ja' ? 0.95 : 0.85; u.pitch = 1.1;
+    let done = false; const fin = () => { if (!done) { done = true; resolve(); } };
+    u.onend = fin; u.onerror = fin;
+    setTimeout(fin, 1500 + text.length * 120);
+    speechSynthesis.speak(u);
+  });
+}
+async function seq(...lines) {
+  const g = gen;
+  for (const [text, lang] of lines) {
+    if (g !== gen) return false;
+    await say(text, lang);
+    await wait(200);
+  }
+  return g === gen;
+}
+function stopSpeech() { gen++; if ('speechSynthesis' in window) speechSynthesis.cancel(); }
+function sayLine(text) { const el = document.querySelector('.say'); if (el) el.textContent = text; }
+
+// ---------- UI helpers ----------
+const app = document.getElementById('app');
+const rand = n => Math.floor(Math.random() * n);
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const TOSHI_SVG = `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#F2D6B3"/>
+  <ellipse cx="22" cy="40" rx="14" ry="24" fill="#8B5A2B" transform="rotate(-18 22 40)"/>
+  <ellipse cx="78" cy="40" rx="14" ry="24" fill="#8B5A2B" transform="rotate(18 78 40)"/>
+  <circle cx="50" cy="55" r="30" fill="#C98A4B"/><ellipse cx="50" cy="68" rx="16" ry="12" fill="#F3DDC0"/>
+  <circle cx="39" cy="50" r="4.5" fill="#3B2A1A"/><circle cx="61" cy="50" r="4.5" fill="#3B2A1A"/>
+  <ellipse cx="50" cy="62" rx="6" ry="4.5" fill="#3B2A1A"/><path d="M44 72 Q50 77 56 72" stroke="#3B2A1A" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`;
+const toshi = (cls = '') => `<div class="toshi ${cls}">${state.photo ? `<img src="${state.photo}" alt="Toshi">` : TOSHI_SVG}</div>`;
+function render(html, opts = {}) {
+  stopSpeech();
+  app.innerHTML = html + (opts.ear ? '<button class="btn ear" id="ear" aria-label="say it again">👂</button>' : '')
+    + '<button class="gear" id="gear" aria-label="parents: hold">⚙︎</button>';
+  if (opts.ear) document.getElementById('ear').onclick = opts.ear;
+  bindParentGate();
+}
+function hop() { const t = document.querySelector('.toshi'); if (t) { t.classList.remove('hop'); void t.offsetWidth; t.classList.add('hop'); } }
+function maybeSurprise() { // occasional, unannounced celebration — never a promised reward
+  if (Math.random() > 0.3) return;
+  const c = document.createElement('div'); c.className = 'confetti';
+  for (let i = 0; i < 18; i++) {
+    const s = document.createElement('span'); s.textContent = ['🦴','⭐','🐾','🎈'][rand(4)];
+    s.style.left = rand(100) + 'vw'; s.style.animationDelay = (Math.random() * .5) + 's'; c.appendChild(s);
+  }
+  document.body.appendChild(c); setTimeout(() => c.remove(), 2400);
+}
+const praise = () => PRAISE[rand(PRAISE.length)];
+
+// ---------- session flow ----------
+let session = null;
+function startSession() {
+  const target = LETTERS.find(x => !mastered('letters', x.L)) || LETTERS[rand(LETTERS.length)];
+  const seen = LETTERS.filter(x => x !== target && state.letters[x.L]);
+  session = { start: Date.now(), target, review: seen.length ? seen[rand(seen.length)] : null, number: 3 };
+  state.sessions[today()] = (state.sessions[today()] || 0) + 1; save();
+  hello();
+}
+function endSession() {
+  const mins = Math.round((Date.now() - session.start) / 60000);
+  state.minutes[today()] = (state.minutes[today()] || 0) + mins; save();
+}
+
+function startScreen() {
+  const done = (state.sessions[today()] || 0) >= SESSIONS_PER_DAY;
+  if (done) return restScreen();
+  render(`${toshi()}<button class="btn go" id="go" aria-label="start">▶︎</button>`);
+  document.getElementById('go').onclick = () => {
+    // iOS only allows speech after a tap — this tap unlocks it.
+    if ('speechSynthesis' in window) { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); }
+    startSession();
+  };
+}
+
+function hello() {
+  render(`${toshi()}<div class="word">Hi, ${kid()}!<span class="ja">こんにちは！</span></div><div class="say"></div>
+    <button class="btn go" id="next">🐾</button>`, { ear: () => run() });
+  const run = async () => { hop(); await seq([`Hi ${kid()}! It's me, Toshi. Let's play!`, 'en'], ['いっしょに あそぼう！', 'ja']); };
+  document.getElementById('next').onclick = () => letterCard(session.target);
+  run();
+}
+
+function letterCard(item) {
+  render(`<div class="big-letter" id="letter">${item.L}</div>
+    <div class="emoji">${item.emoji}</div>
+    <div class="word">${item.en}<span class="ja">${item.ja}</span></div><div class="say"></div>
+    <button class="btn go" id="next">🐾</button>`, { ear: () => run() });
+  const run = () => seq([`${item.L}.`, 'en'], [`${item.L} says ${item.snd}.`, 'en'], [`${item.L} is for ${item.en}.`, 'en'], [item.ja, 'ja']);
+  document.getElementById('letter').onclick = () => seq([`${item.L}. ${item.snd}.`, 'en']);
+  document.getElementById('next').onclick = () => findIt(item, () => session.review ? findIt(session.review, choose) : choose());
+  run();
+}
+
+function findIt(item, next) {
+  const opts = shuffle([item.L, ...shuffle(DISTRACTORS.filter(c => c !== item.L)).slice(0, 2)]);
+  let misses = 0, finished = false;
+  render(`${toshi('small')}<div class="row">${opts.map(c => `<button class="btn choice" data-c="${c}">${c}</button>`).join('')}</div>
+    <div class="say"></div>`, { ear: () => ask() });
+  const ask = () => seq([`Which one is ${item.L}?`, 'en']);
+  app.querySelectorAll('.choice').forEach(b => b.onclick = async () => {
+    if (finished) return;
+    const c = b.dataset.c;
+    if (c === item.L) {
+      finished = true; b.classList.add('good'); hop(); maybeSurprise();
+      if (misses === 0) markCorrect('letters', item.L);
+      const ok = await seq([`Yes! That's ${item.L}. ${praise()}`, 'en']);
+      if (ok) setTimeout(next, 400);
+    } else {
+      misses++; markMiss('letters', item.L); b.classList.add('dim');
+      const right = app.querySelector(`[data-c="${item.L}"]`);
+      if (misses >= 2) right.classList.add('glow');      // show the answer gently — no buzzer
+      await seq([`That's ${c}. Let's find ${item.L}.`, 'en']);
+    }
+  });
+  ask();
+}
+
+function choose() {
+  render(`${toshi('small')}<div class="row">
+      <button class="btn card" id="count"><span class="emoji">🍎</span>How many?<span class="muted">いくつ？</span></button>
+      <button class="btn card" id="walk"><span class="emoji">🐾</span>Toshi's walk<span class="muted">おさんぽ</span></button>
+    </div><div class="say"></div>`, { ear: () => ask() });
+  const ask = () => seq(['What do you want to play?', 'en']);
+  document.getElementById('count').onclick = () => howMany(0);
+  document.getElementById('walk').onclick = () => walk();
+  ask();
+}
+
+// How Many: touch-count each object, then the cardinal question (plan §4-2).
+function howMany(round) {
+  const max = mastered('numbers', 'count3') ? 5 : 4;
+  let n = 1 + rand(max);
+  if (round > 0 && n === session.number) n = n % max + 1; // no repeat back-to-back
+  session.number = n;
+  let counted = 0;
+  render(`<div class="say"></div><div class="apples">${Array.from({ length: n }, (_, i) =>
+      `<button class="apple" data-i="${i}">🍎</button>`).join('')}</div>`, { ear: () => ask() });
+  const ask = () => seq(['Touch each apple and count!', 'en']);
+  app.querySelectorAll('.apple').forEach(a => a.onclick = async () => {
+    if (a.classList.contains('counted')) return;
+    counted++; a.classList.add('counted'); a.insertAdjacentHTML('beforeend', `<span class="tag">${counted}</span>`);
+    stopSpeech(); await say(EN_NUM[counted], 'en');
+    if (counted === n) { await wait(300); cardinal(n, round); }
+  });
+  ask();
+}
+function cardinal(n, round) {
+  const opts = shuffle([n, ...shuffle([1, 2, 3, 4, 5].filter(x => x !== n)).slice(0, 2)]);
+  let misses = 0, finished = false;
+  render(`<div class="apples">${'<div class="apple counted">🍎</div>'.repeat(n)}</div>
+    <div class="row">${opts.map(x => `<button class="btn choice" data-n="${x}">${x}</button>`).join('')}</div>
+    <div class="say"></div>`, { ear: () => ask() });
+  const ask = () => seq(['So, how many apples?', 'en']);
+  app.querySelectorAll('.choice').forEach(b => b.onclick = async () => {
+    if (finished) return;
+    const x = +b.dataset.n;
+    if (x === n) {
+      finished = true; b.classList.add('good'); maybeSurprise();
+      if (misses === 0) markCorrect('numbers', 'count' + n);
+      const ok = await seq([`Yes! ${EN_NUM[n]} ${n === 1 ? 'apple' : 'apples'}! ${praise()}`, 'en'], [`りんごが ${JA_KO[n]}。`, 'ja']);
+      if (ok) setTimeout(() => round < 1 ? howMany(round + 1) : bridge(), 400);
+    } else {
+      misses++; markMiss('numbers', 'count' + n); b.classList.add('dim');
+      if (misses >= 2) app.querySelector(`[data-n="${n}"]`).classList.add('glow');
+      await seq(["Let's count again together.", 'en'], [Array.from({ length: n }, (_, i) => EN_NUM[i + 1]).join(', ') + '.', 'en']);
+    }
+  });
+  ask();
+}
+
+// Toshi's Walk: linear 1–10 track, say each number while moving (Siegler & Ramani 2008).
+function walk() {
+  let pos = 0, steps = 0, rolling = false;
+  const draw = () => {
+    const track = Array.from({ length: 10 }, (_, i) => {
+      const k = i + 1;
+      return `<div class="sq ${k < pos ? 'passed' : ''} ${k === pos ? 'here' : ''}">${k === pos ? '<span class="pin">🐕</span>' : ''}${k}</div>`;
+    }).join('');
+    render(`<div class="track">${track}</div><div class="say"></div>
+      ${pos === 10 ? '' : `<div class="row">
+        <button class="btn" id="die" ${steps ? 'disabled style="opacity:.4"' : ''}><div class="die">🎲</div></button>
+        <button class="btn go" id="step" ${steps ? '' : 'disabled style="opacity:.4"'}>🐾 ${steps ? '<div class="pips">' + '<span class="pip"></span>'.repeat(steps) + '</div>' : ''}</button>
+      </div>`}`, { ear: () => seq([steps ? 'Tap the paw to walk!' : 'Tap the dice!', 'en']) });
+    if (pos === 10) return;
+    document.getElementById('die').onclick = async () => {
+      if (rolling || steps) return; rolling = true;
+      steps = 1 + rand(2);           // 1 or 2 — small, countable moves
+      draw(); await seq([steps === 1 ? 'One step!' : 'Two steps!', 'en']); rolling = false;
+    };
+    document.getElementById('step').onclick = async () => {
+      if (!steps) return;
+      pos = Math.min(10, pos + 1); steps = pos === 10 ? 0 : steps - 1;
+      draw(); await say(EN_NUM[pos], 'en');
+      if (pos === 10) { maybeSurprise(); markCorrect('numbers', 'walk10'); session.number = 10;
+        const ok = await seq(['Ten! Toshi made it home! You counted every step!', 'en'], ['じゅう！ゴール！', 'ja']);
+        if (ok) setTimeout(bridge, 500); }
+    };
+  };
+  draw();
+  seq(["Let's walk Toshi to ten. Say each number with me!", 'en']);
+}
+
+function bridge() {
+  const t = session.target, n = session.number;
+  render(`${toshi('small')}<div class="bridge">
+      <div>${t.L} — ${t.en} <span class="ja">— ${t.ja}</span></div>
+      <div>${n} — ${EN_NUM[n]} <span class="ja">— ${JA_NUM[n]}</span></div>
+    </div><div class="say"></div><button class="btn go" id="next">🐾</button>`, { ear: () => run() });
+  const run = () => seq([`${t.L}. ${t.en}.`, 'en'], [t.ja, 'ja'], [`${EN_NUM[n]}.`, 'en'], [JA_NUM[n], 'ja']);
+  document.getElementById('next').onclick = mission;
+  run();
+}
+
+function mission() {
+  const t = session.target;
+  render(`${toshi()}<div class="word">🏠 🔎 ${t.L}?</div><div class="say"></div><button class="btn go" id="next">🐾</button>`,
+    { ear: () => run() });
+  const run = () => seq([`Mission! Find something at home that starts with ${t.L}, like ${t.en}!`, 'en'],
+                        [`おうちで ${t.L} ではじまるもの、さがしてみてね。`, 'ja']);
+  document.getElementById('next').onclick = bye;
+  run();
+}
+
+function bye() {
+  endSession();
+  render(`${toshi()}<div class="word">Bye-bye!<span class="ja">またね！</span></div><div class="say"></div>`);
+  hop();
+  seq([`Great playing today, ${kid()}! See you next time!`, 'en'], ['またあしたね！', 'ja']).then(ok => { if (ok) setTimeout(restScreen, 1500); });
+}
+
+function restScreen() {
+  render(`${toshi()}<div class="word">💤 Toshi is resting.<span class="ja">おやすみ中</span></div>
+    <div class="muted">See you tomorrow! / またあした</div>`);
+}
+
+// ---------- parent gate: hold the gear for 2 seconds ----------
+function bindParentGate() {
+  const g = document.getElementById('gear'); let t = null;
+  const startHold = e => { e.preventDefault(); g.classList.add('holding'); t = setTimeout(parentPanel, 2000); };
+  const endHold = () => { g.classList.remove('holding'); clearTimeout(t); };
+  g.addEventListener('touchstart', startHold, { passive: false }); g.addEventListener('mousedown', startHold);
+  ['touchend', 'touchcancel', 'mouseup', 'mouseleave'].forEach(ev => g.addEventListener(ev, endHold));
+}
+function parentPanel() {
+  const rowsL = LETTERS.map(x => {
+    const r = state.letters[x.L]; const d = r?.days.length || 0;
+    return `<tr><td><b>${x.L}</b></td><td>${d}/${MASTERY_DAYS} days ${d >= MASTERY_DAYS ? '✅' : ''}</td><td class="muted">${r ? `${r.misses} misses / ${r.tries} tries` : '—'}</td></tr>`;
+  }).join('');
+  const rowsN = Object.entries(state.numbers).map(([k, r]) =>
+    `<tr><td>${k}</td><td>${r.days.length} days</td><td class="muted">${r.misses} misses / ${r.tries} tries</td></tr>`).join('') || '<tr><td class="muted">—</td></tr>';
+  const last7 = Array.from({ length: 7 }, (_, i) => { const d = new Date(Date.now() - i * 864e5).toLocaleDateString('en-CA');
+    return `${d.slice(5)}: ${state.sessions[d] || 0} sessions, ${state.minutes[d] || 0} min`; }).join('<br>');
+  render(`<div class="panel">
+    <h2>Parents / 保護者</h2>
+    <b>Letters</b><table>${rowsL}</table>
+    <b>Numbers</b><table>${rowsN}</table>
+    <b>Last 7 days</b><div class="muted">${last7}</div><br>
+    <b>Child's name</b><div><input id="kidname" value="${state.name.replace(/"/g, '&quot;')}" placeholder="name" style="font-size:18px;padding:8px;border-radius:10px;border:1px solid #E3CFAF"></div><br>
+    <b>Toshi photo</b><div><input type="file" accept="image/*" id="photo"></div><br>
+    <button class="btn" id="again">One more session today</button>
+    <button class="btn" id="clearphoto">Use drawn Toshi</button>
+    <button class="btn" id="reset">Reset progress</button>
+    <button class="btn" id="back">Close</button>
+    <p class="muted">All data stays on this device. Together-mode tip: after the session, ask "What else starts with ${(LETTERS.find(x => !mastered('letters', x.L)) || LETTERS[0]).L}?"</p>
+  </div>`);
+  document.getElementById('photo').onchange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    const img = new Image(); img.onload = () => {
+      const c = document.createElement('canvas'); const s = 320; c.width = c.height = s;
+      const m = Math.min(img.width, img.height);
+      c.getContext('2d').drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, s, s);
+      state.photo = c.toDataURL('image/jpeg', 0.85); save(); parentPanel();
+    }; img.src = URL.createObjectURL(f);
+  };
+  document.getElementById('again').onclick = () => { state.sessions[today()] = Math.max(0, (state.sessions[today()] || 0) - 1); save(); startScreen(); };
+  document.getElementById('clearphoto').onclick = () => { state.photo = null; save(); parentPanel(); };
+  document.getElementById('reset').onclick = () => { if (confirm('Reset all progress?')) { state.letters = {}; state.numbers = {}; state.sessions = {}; state.minutes = {}; save(); parentPanel(); } };
+  document.getElementById('kidname').onchange = e => { state.name = e.target.value.trim(); save(); };
+  document.getElementById('back').onclick = startScreen;
+}
+
+if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+startScreen();
+</script>
+</body>
+</html>
