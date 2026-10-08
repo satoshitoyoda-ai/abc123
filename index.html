@@ -267,13 +267,20 @@ const sfx = {
 let voices = [];
 function loadVoices() { voices = speechSynthesis.getVoices(); }
 if ('speechSynthesis' in window) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+// Toshi is a boy: prefer male voices (iOS: Aaron/Evan/Nathan/Tom, JP: Otoya/Hattori). A parent can override per device.
+const MALE_EN = /Aaron|Evan|Nathan|Tom|Alex|Fred|Reed|Eddy|Daniel|Arthur|Rishi|Guy|David|Mark|Andrew|Brian|Christopher|Eric|Roger|Male/i;
+const MALE_JA = /Otoya|Hattori|Ichiro|Keita|Daichi|Naoki|Male/i;
+const langVoices = lang => voices.filter(v => (lang === 'ja' ? /^ja[-_]/i : /^en[-_]/i).test(v.lang));
 function pickVoice(lang) {
-  const re = lang === 'ja' ? /^ja[-_]/i : /^en[-_]US/i;
-  const list = voices.filter(v => re.test(v.lang));
-  return list.find(v => /Enhanced|Premium/i.test(v.name)) || list.find(v => /Kyoko|Samantha|Nicky|Google/.test(v.name)) || list[0] || null;
+  const chosen = lang === 'ja' ? state.voiceJa : state.voiceEn;
+  const all = langVoices(lang);
+  if (chosen) { const v = all.find(v => v.name === chosen); if (v) return v; }
+  const male = all.filter(v => (lang === 'ja' ? MALE_JA : MALE_EN).test(v.name));
+  const us = male.filter(v => lang === 'ja' || /en[-_]US/i.test(v.lang));
+  return us.find(v => /Enhanced|Premium/i.test(v.name)) || us[0] || male[0] || all[0] || null;
 }
 // Moods vary pitch and speed so the voice doesn't sound flat.
-const MOODS = { normal: [1.0, 1.3], excited: [1.08, 1.6], slow: [0.8, 1.25], calm: [0.92, 1.15], sing: [0.95, 1.45] };
+const MOODS = { normal: [1.05, 1.35], excited: [1.15, 1.6], slow: [0.82, 1.3], calm: [0.95, 1.2], sing: [1.0, 1.5] };
 const wait = ms => new Promise(r => setTimeout(r, ms));
 let gen = 0;   // bumped on every screen change so stale speech sequences stop
 function say(text, lang = 'en', mood = 'normal', pitchAdd = 0) {
@@ -394,7 +401,7 @@ function startLesson() {
   state.sessions[today()] = (state.sessions[today()] || 0) + 1; save();
   render(`${toshi()}<div class="word">Hi, ${kid()}!<span class="ja">こんにちは！</span></div><div class="say"></div>
     <button class="btn go" id="next">🐾</button>`, { ear: () => run(), petToshi: true });
-  const run = async () => { react('happy'); sfx.bark(); await seq([`Hi ${kid()}! It's me, Toshi! Let's play!`, 'en', 'excited'], ['いっしょに あそぼう！', 'ja', 'excited']); };
+  const run = async () => { react('happy'); sfx.bark(); await seq([`Hey hey, ${kid()}! It's me, your buddy Toshi! Are you ready? Let's go!`, 'en', 'excited'], ['いっしょに あそぼう！', 'ja', 'excited']); };
   $('#next').onclick = () => { sfx.tap(); letterCard(lesson.target, () => findIt(lesson.target, () => lesson.review ? findIt(lesson.review, choose) : choose())); };
   run();
 }
@@ -796,6 +803,10 @@ function parentPanel() {
     <b>Numbers</b><table>${rowsN}</table>
     <b>Last 7 days</b><div class="muted">${last7}</div><br>
     <b>Child's name</b><div><input id="kidname" value="${state.name.replace(/"/g, '&quot;')}" placeholder="name" style="font-size:18px;padding:8px;border-radius:10px;border:1px solid #E3CFAF"></div><br>
+    <b>Toshi's voice</b> <span class="muted">(this device)</span><div>
+      EN <select id="ven" style="font-size:16px;max-width:70%"></select> <button class="btn" id="ten">▶︎ test</button><br>
+      JP <select id="vja" style="font-size:16px;max-width:70%"></select> <button class="btn" id="tja">▶︎ test</button>
+      <div class="muted">Boy voices show ♂. More voices: iPad Settings → Accessibility → Spoken Content → Voices (e.g. English "Aaron"/"Evan", Japanese "Otoya").</div></div><br>
     <b>Toshi photo</b><div><input type="file" accept="image/*" id="photo"></div><br>
     <button class="btn" id="relesson">Redo today's lesson</button>
     <button class="btn" id="clearphoto">Use drawn Toshi</button>
@@ -814,6 +825,15 @@ function parentPanel() {
       state.photo = c.toDataURL('image/jpeg', 0.85); save(); parentPanel();
     }; img.src = URL.createObjectURL(f);
   };
+  loadVoices();
+  const fill = (sel, lang, key) => {
+    const all = langVoices(lang), cur = pickVoice(lang);
+    sel.innerHTML = all.map(v => `<option value="${v.name.replace(/"/g, '&quot;')}" ${cur && v.name === cur.name ? 'selected' : ''}>${(lang === 'ja' ? MALE_JA : MALE_EN).test(v.name) ? '♂ ' : ''}${v.name} (${v.lang})</option>`).join('') || '<option>(no voices found)</option>';
+    sel.onchange = () => { state[key] = sel.value; save(); };
+  };
+  fill($('#ven'), 'en', 'voiceEn'); fill($('#vja'), 'ja', 'voiceJa');
+  $('#ten').onclick = () => { audio(); hush(); say(`Hey hey! I'm Toshi! Let's count! One, two, three!`, 'en', 'excited'); };
+  $('#tja').onclick = () => { audio(); hush(); say('やあ！ぼく、トシだよ！いっしょに あそぼう！', 'ja', 'excited'); };
   $('#kidname').onchange = e => { state.name = e.target.value.trim(); ORDER = buildOrder(); save(); };
   $('#relesson').onclick = () => { delete state.lessonDone[today()]; save(); startScreen(); };
   $('#clearphoto').onclick = () => { state.photo = null; save(); parentPanel(); };
