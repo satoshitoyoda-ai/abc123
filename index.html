@@ -21,25 +21,58 @@
     --accent-deep: #E0A800;
     --good: #3DBE7A;
     --hint: #8FD3FF;         /* hint glow is blue so it never looks like the main yellow */
-    --sky: #6EC1FF;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
     font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Arial Rounded MT Bold", system-ui, sans-serif;
     overscroll-behavior: none; touch-action: manipulation; }
   #app { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); gap: 18px; text-align: center; }
-  .toshi { width: min(34vw, 180px); height: min(34vw, 180px); border-radius: 50%; overflow: hidden; flex: none;
-    background: #F2D6B3; box-shadow: 0 6px 0 #E3BE92; transition: transform .3s; }
+    padding: max(64px, env(safe-area-inset-top)) 16px max(96px, env(safe-area-inset-bottom)); gap: 18px; text-align: center; }
+
+  /* ---- Toshi ---- */
+  .toshi { width: min(36vw, 190px); height: min(36vw, 190px); border-radius: 50%; overflow: hidden; flex: none;
+    background: var(--accent); box-shadow: 0 6px 0 var(--accent-deep); animation: breathe 3s ease-in-out infinite; }
+  .toshi.small { width: min(20vw, 100px); height: min(20vw, 100px); }
   .toshi img, .toshi svg { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .toshi.small { width: min(18vw, 90px); height: min(18vw, 90px); }
-  .toshi.hop { animation: hop .6s ease 2; }
-  @keyframes hop { 50% { transform: translateY(-24px) rotate(-6deg); } }
+  .tsvg .t-tail { transform-box: fill-box; transform-origin: 0% 100%; animation: wag 1.1s ease-in-out infinite; }
+  .tsvg .t-ear-l { transform-box: fill-box; transform-origin: 70% 10%; animation: earl 2.6s ease-in-out infinite; }
+  .tsvg .t-ear-r { transform-box: fill-box; transform-origin: 30% 10%; animation: earr 2.6s ease-in-out infinite; }
+  .tsvg .t-eyes  { transform-box: fill-box; transform-origin: 50% 50%; animation: blink 4.5s infinite; }
+  .tsvg .t-tongue{ transform-box: fill-box; transform-origin: 50% 0%; animation: pant 1.4s ease-in-out infinite; }
+  .tsvg .t-head  { transform-box: fill-box; transform-origin: 50% 90%; transition: transform .3s; }
+  .toshi.excited .t-tail { animation-duration: .22s; }
+  .toshi.excited .t-ear-l, .toshi.excited .t-ear-r { animation-duration: .35s; }
+  .toshi.tilt .t-head { transform: rotate(-14deg); }
+  .toshi.sleepy .t-eyes { animation: none; transform: scaleY(.12); }
+  .toshi.sleepy .t-tail { animation-duration: 3s; }
+  .toshi.jump   { animation: jump .8s cubic-bezier(.3,1.6,.5,1); }
+  .toshi.spin   { animation: spin .9s ease-in-out; }
+  .toshi.wiggle { animation: wiggle .7s ease-in-out; }
+  .toshi.flip   { animation: flip .9s ease-in-out; }
+  @keyframes breathe { 50% { transform: scale(1.03); } }
+  @keyframes wag { 0%,100% { transform: rotate(-18deg); } 50% { transform: rotate(22deg); } }
+  @keyframes earl { 0%,100% { transform: rotate(0); } 50% { transform: rotate(10deg); } }
+  @keyframes earr { 0%,100% { transform: rotate(0); } 50% { transform: rotate(-10deg); } }
+  @keyframes blink { 0%,92%,100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+  @keyframes pant { 50% { transform: scaleY(1.25); } }
+  @keyframes jump { 0% { transform: translateY(0) scale(1,1); } 15% { transform: translateY(0) scale(1.15,.85); }
+    45% { transform: translateY(-50px) scale(.95,1.08); } 75% { transform: translateY(0) scale(1.1,.9); } 100% { transform: none; } }
+  @keyframes spin { 30% { transform: translateY(-30px) rotate(0); } 70% { transform: translateY(-30px) rotate(360deg); } 100% { transform: rotate(360deg); } }
+  @keyframes wiggle { 20% { transform: rotate(-14deg); } 40% { transform: rotate(14deg); } 60% { transform: rotate(-10deg); } 80% { transform: rotate(8deg); } }
+  @keyframes flip { 50% { transform: translateY(-40px) scaleX(-1); } }
+  .burst { position: fixed; pointer-events: none; font-size: 30px; z-index: 50; animation: burst 1s ease-out forwards; }
+  @keyframes burst { from { transform: translate(-50%,-50%) scale(.4); opacity: 1; }
+    to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.2); opacity: 0; } }
+
+  /* ---- shared ---- */
   .big-letter { font-size: min(36vw, 220px); line-height: 1; font-weight: 800; color: var(--ink);
     background: var(--accent); border-radius: 40px; padding: 10px 40px 18px; box-shadow: 0 8px 0 var(--accent-deep); }
+  .boing { animation: boing .5s cubic-bezier(.3,1.8,.5,1); }
+  @keyframes boing { 0% { transform: scale(1); } 30% { transform: scale(1.18,.85); } 60% { transform: scale(.92,1.1); } 100% { transform: scale(1); } }
   .word { font-size: min(8vw, 44px); font-weight: 700; }
   .word .ja { color: var(--soft); margin-left: .4em; }
   .emoji { font-size: min(18vw, 110px); line-height: 1; }
+  .mini-toshi { width: min(24vw, 120px); height: min(24vw, 120px); }
   .row { display: flex; gap: min(4vw, 24px); justify-content: center; flex-wrap: wrap; }
   .btn { border: none; border-radius: 28px; background: var(--card); color: var(--ink); font: inherit; font-weight: 800;
     min-width: 96px; min-height: 96px; padding: 12px 20px; box-shadow: 0 6px 0 #E8D9C2; cursor: pointer; }
@@ -49,38 +82,99 @@
   .btn.good { background: var(--good); color: #fff; box-shadow: 0 6px 0 #2A9A5E; }
   .btn.glow { background: var(--hint); box-shadow: 0 0 0 8px rgba(143,211,255,.5), 0 6px 0 #5AA9DA; }
   .btn.dim { opacity: .35; }
-  .btn.card { width: min(40vw, 260px); min-height: min(40vw, 240px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; font-size: min(6vw, 30px); }
-  .btn.card .emoji { font-size: min(16vw, 96px); }
+  .shake { animation: shake .4s; }
+  @keyframes shake { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
   .ear { position: fixed; left: max(12px, env(safe-area-inset-left)); bottom: max(12px, env(safe-area-inset-bottom));
-    width: 76px; height: 76px; min-width: 0; min-height: 0; padding: 0; font-size: 38px; border-radius: 50%; }
-  .gear { position: fixed; right: 10px; top: max(10px, env(safe-area-inset-top)); width: 44px; height: 44px; border-radius: 50%;
+    width: 76px; height: 76px; min-width: 0; min-height: 0; padding: 0; font-size: 38px; border-radius: 50%; z-index: 10; }
+  .home { position: fixed; left: max(12px, env(safe-area-inset-left)); top: max(10px, env(safe-area-inset-top));
+    width: 64px; height: 64px; min-width: 0; min-height: 0; padding: 0; font-size: 32px; border-radius: 50%; z-index: 10; }
+  .gear { position: fixed; right: 10px; top: max(10px, env(safe-area-inset-top)); width: 44px; height: 44px; border-radius: 50%; z-index: 10;
     background: transparent; border: 2px dashed #E3CFAF; color: #D9C4A3; font-size: 20px; display: flex; align-items: center; justify-content: center; }
   .gear.holding { background: #F3E3C8; }
-  .apples { display: flex; flex-wrap: wrap; justify-content: center; gap: min(3vw, 20px); max-width: 720px; }
-  .apple { font-size: min(17vw, 100px); width: min(22vw, 130px); height: min(22vw, 130px); display: flex; align-items: center; justify-content: center;
-    border-radius: 24px; background: var(--card); box-shadow: 0 6px 0 #E8D9C2; position: relative; }
-  .apple.counted { background: #FFF0B8; box-shadow: 0 6px 0 #F2D872; }
-  .apple .tag { position: absolute; top: 4px; right: 10px; font-size: 26px; font-weight: 800; color: var(--good); }
-  .track { display: flex; gap: 4px; width: 100%; max-width: 900px; }
-  .sq { flex: 1; aspect-ratio: 1; border-radius: 12px; background: var(--card); display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: min(4.5vw, 34px); box-shadow: 0 4px 0 #E8D9C2; position: relative; }
-  .sq.passed { background: #FFF0B8; }
-  .sq.here { background: var(--accent); color: var(--ink); box-shadow: 0 4px 0 var(--accent-deep); }
-  .sq .pin { position: absolute; top: -70%; font-size: min(7vw, 44px); }
-  .die { font-size: 30px; }
-  .pips { display: grid; grid-template-columns: repeat(2, 22px); gap: 10px; justify-content: center; }
-  .pip { width: 22px; height: 22px; border-radius: 50%; background: var(--ink); }
   .say { font-size: min(6vw, 30px); font-weight: 700; color: var(--soft); min-height: 1.4em; }
-  .bridge { display: flex; flex-direction: column; gap: 14px; font-size: min(8vw, 44px); font-weight: 800; }
-  .bridge .ja { color: var(--soft); }
-  .confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+  .confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 40; }
   .confetti span { position: absolute; top: -40px; font-size: 34px; animation: fall 1.6s linear forwards; }
   @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
+
+  /* ---- playground ---- */
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; max-width: 760px; }
+  @media (min-width: 640px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+  .tile { border: none; border-radius: 26px; background: var(--card); box-shadow: 0 6px 0 #E8D9C2; padding: 14px 6px; font: inherit;
+    font-weight: 800; font-size: 20px; color: var(--ink); display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 130px; justify-content: center; }
+  .tile:active { transform: translateY(4px); box-shadow: 0 2px 0 #E8D9C2; }
+  .tile .emoji { font-size: 54px; }
+  .tile small { color: var(--soft); font-size: 15px; }
+  .tile.yellow { background: var(--accent); box-shadow: 0 6px 0 var(--accent-deep); }
+
+  /* ---- counting ---- */
+  .apples { display: flex; flex-wrap: wrap; justify-content: center; gap: min(3vw, 18px); max-width: 720px; }
+  .apple { font-size: min(14vw, 90px); width: min(20vw, 120px); height: min(20vw, 120px); display: flex; align-items: center; justify-content: center;
+    border-radius: 24px; background: var(--card); box-shadow: 0 6px 0 #E8D9C2; position: relative; border: none; padding: 0; }
+  .apple.counted { background: #FFF0B8; box-shadow: 0 6px 0 #F2D872; }
+  .apple .tag { position: absolute; top: 4px; right: 10px; font-size: 26px; font-weight: 800; color: var(--ink); }
+  .bowl { min-height: 120px; min-width: min(80vw, 420px); border-radius: 0 0 120px 120px; background: #FFE59A; box-shadow: inset 0 -10px 0 var(--accent-deep);
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px; padding: 10px 20px 24px; }
+  .bone { font-size: min(11vw, 56px); background: none; border: none; padding: 4px; line-height: 1; }
+  .pile { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 600px; }
+
+  /* ---- walk ---- */
+  .track-wrap { width: 100%; max-width: 900px; overflow-x: auto; padding: 60px 4px 10px; scroll-behavior: smooth; }
+  .track { display: flex; gap: 4px; }
+  .sq { flex: 1; min-width: 30px; aspect-ratio: 1; border-radius: 12px; background: var(--card); display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: min(4.5vw, 30px); box-shadow: 0 4px 0 #E8D9C2; position: relative; }
+  .track.long .sq { flex: none; width: 56px; font-size: 24px; }
+  .sq.passed { background: #FFF0B8; }
+  .sq.here { background: var(--accent); color: var(--ink); box-shadow: 0 4px 0 var(--accent-deep); }
+  .sq .pin { position: absolute; bottom: 90%; width: 150%; aspect-ratio: 1; }
+  .sq .pin svg { width: 100%; height: 100%; }
+  .pin.hopping { animation: jump .45s ease; }
+  .die-face { width: 70px; height: 70px; border-radius: 16px; background: #fff; display: grid; grid-template-columns: repeat(3, 1fr); padding: 8px; gap: 2px; }
+  .die-face i { border-radius: 50%; }
+  .die-face i.on { background: var(--ink); }
+  .rolling { animation: roll .5s ease; }
+  @keyframes roll { 50% { transform: rotate(180deg) scale(1.2); } 100% { transform: rotate(360deg); } }
+
+  /* ---- quick look ---- */
+  .flash { width: min(60vw, 280px); height: min(60vw, 280px); border-radius: 30px; background: var(--card); box-shadow: 0 8px 0 #E8D9C2;
+    display: grid; grid-template-columns: repeat(3, 1fr); padding: 28px; gap: 10px; }
+  .flash i { border-radius: 50%; }
+  .flash i.on { background: var(--ink); }
+  .flash.hidden { background: var(--accent); box-shadow: 0 8px 0 var(--accent-deep); display: flex; align-items: center; justify-content: center; font-size: 110px; font-weight: 800; }
+
+  /* ---- balloons ---- */
+  .sky { position: relative; width: 100%; max-width: 900px; height: 62vh; overflow: hidden; border-radius: 30px; background: linear-gradient(#CDEBFF, #F2FAFF); }
+  .balloon { position: absolute; bottom: -180px; width: min(22vw, 120px); height: min(26vw, 142px); border-radius: 50% 50% 46% 46%;
+    display: flex; align-items: center; justify-content: center; font-size: min(12vw, 64px); font-weight: 800; color: var(--ink);
+    border: none; animation: rise var(--dur) linear var(--delay) infinite; }
+  .balloon::after { content: ''; position: absolute; top: 100%; left: 50%; width: 2px; height: 50px; background: #9A8B7A; }
+  .balloon.popped { visibility: hidden; }
+  .balloon.wob { animation: rise var(--dur) linear var(--delay) infinite, shake .4s; }
+  @keyframes rise { from { transform: translateY(0); } to { transform: translateY(calc(-62vh - 240px)); } }
+
+  /* ---- tracing ---- */
+  .trace-wrap { position: relative; touch-action: none; }
+  #cv { touch-action: none; background: var(--card); border-radius: 30px; box-shadow: 0 8px 0 #E8D9C2; display: block; }
+
+  /* ---- explorers ---- */
+  .keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; width: 100%; max-width: 760px; }
+  @media (min-width: 640px) { .keys { grid-template-columns: repeat(7, 1fr); } }
+  .key { border: none; border-radius: 18px; background: var(--card); box-shadow: 0 5px 0 #E8D9C2; font: inherit; font-weight: 800;
+    font-size: min(9vw, 48px); aspect-ratio: 1; color: var(--ink); padding: 0; }
+  .key.seen { background: #FFF0B8; box-shadow: 0 5px 0 #F2D872; }
+  .key:active { transform: translateY(3px); }
+  .overlay { position: fixed; inset: 0; background: rgba(255,246,229,.97); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 30; padding: 16px; }
+  .frames { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  .frame { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; background: #fff; padding: 10px; border-radius: 16px; box-shadow: 0 5px 0 #E8D9C2; }
+  .frame i { width: min(9vw, 44px); height: min(9vw, 44px); border-radius: 50%; border: 3px dashed #E3CFAF; }
+  .frame i.on { background: var(--accent); border: 3px solid var(--accent-deep); animation: boing .4s; }
+
+  /* ---- parents ---- */
   .panel { background: var(--card); border-radius: 20px; padding: 20px; max-width: 560px; width: 100%; text-align: left; font-size: 17px; line-height: 1.5; }
   .panel h2 { margin: 0 0 8px; font-size: 22px; }
   .panel table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; }
   .panel td { padding: 4px 6px; border-bottom: 1px solid #F0E6D6; }
   .panel .btn { min-height: 52px; min-width: 0; font-size: 17px; border-radius: 14px; margin: 4px 4px 0 0; box-shadow: 0 3px 0 #E8D9C2; background: #FFF3E2; }
+  .panel .btn.on { background: var(--accent); }
   .muted { color: var(--soft); font-size: 15px; }
 </style>
 </head>
@@ -89,180 +183,251 @@
 <script>
 'use strict';
 
-// ---------- content ----------
-// Letters in the child's-name order (plan §4-3). snd = spoken approximation of the letter sound until family recordings exist.
-const LETTERS = [
-  { L: 'D', snd: 'duh',  en: 'dog',    ja: 'いぬ',     emoji: '🐕' },
-  { L: 'Y', snd: 'yuh',  en: 'yo-yo',  ja: 'ヨーヨー', emoji: '🪀' },
-  { L: 'L', snd: 'lll',  en: 'lion',   ja: 'ライオン', emoji: '🦁' },
-  { L: 'A', snd: 'aah',  en: 'apple',  ja: 'りんご',   emoji: '🍎' },
-  { L: 'N', snd: 'nnn',  en: 'nose',   ja: 'はな',     emoji: '👃' },
-];
-// Distractors avoid shapes easily confused with the target (b/d/p/q never appear in v1).
-const DISTRACTORS = 'CEFHKMORSTUVWXZ'.split('');
-const EN_NUM = ['zero','one','two','three','four','five','six','seven','eight','nine','ten'];
-const JA_NUM = ['ぜろ','いち','に','さん','よん','ご','ろく','なな','はち','きゅう','じゅう'];
-const JA_KO = ['','いっこ','にこ','さんこ','よんこ','ごこ']; // counter for small objects
-const PRAISE = [
-  'You looked carefully!', 'You found it!', 'You kept trying!', 'Nice careful counting!', 'You did it step by step!'
-];
-const SESSIONS_PER_DAY = 2;   // soft daily cap (~15–20 min)
-const MASTERY_DAYS = 3;       // correct on 3 separate days = mastered
+// ================= content =================
+// [word, Japanese, emoji, spoken approximation of the letter sound]. Family recordings will replace the sounds later.
+const WORDS = {
+  A: ['apple', 'りんご', '🍎', 'aah'],   B: ['ball', 'ボール', '⚽', 'buh'],     C: ['cat', 'ねこ', '🐱', 'kuh'],
+  D: ['dog', 'いぬ', 'TOSHI', 'duh'],    E: ['egg', 'たまご', '🥚', 'eh'],       F: ['fish', 'さかな', '🐟', 'fff'],
+  G: ['grapes', 'ぶどう', '🍇', 'guh'],  H: ['hat', 'ぼうし', '👒', 'hah'],      I: ['iguana', 'イグアナ', '🦎', 'ih'],
+  J: ['juice', 'ジュース', '🧃', 'juh'], K: ['key', 'かぎ', '🔑', 'kuh'],        L: ['lion', 'ライオン', '🦁', 'lll'],
+  M: ['moon', 'つき', '🌙', 'mmm'],      N: ['nose', 'はな', '👃', 'nnn'],       O: ['octopus', 'たこ', '🐙', 'ah'],
+  P: ['pig', 'ぶた', '🐷', 'puh'],       Q: ['queen', 'じょおう', '👸', 'kwuh'], R: ['rabbit', 'うさぎ', '🐰', 'rrr'],
+  S: ['sun', 'たいよう', '☀️', 'sss'],   T: ['truck', 'トラック', '🚚', 'tuh'],  U: ['umbrella', 'かさ', '☂️', 'uh'],
+  V: ['van', 'バン', '🚐', 'vvv'],       W: ['watermelon', 'すいか', '🍉', 'wuh'], X: ['fox', 'きつね', '🦊', 'ks'],
+  Y: ['yo-yo', 'ヨーヨー', '🪀', 'yuh'], Z: ['zebra', 'しまうま', '🦓', 'zzz'],
+};
+// Lesson order (plan §4-3): the child's name letters first (built from the on-device name), then letters whose name holds their sound, then the rest.
+const BASE_ORDER = 'BTPKMSDCFGHJLNORUVWZAEIQXY'.split('');
+const ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const item = L => ({ L, en: WORDS[L][0], ja: WORDS[L][1], emoji: WORDS[L][2], snd: WORDS[L][3] });
+const forLine = it => it.L === 'X' ? 'X is in fox!' : `${it.L} is for ${it.en}!${it.L === 'D' ? ' Like Toshi!' : ''}`;
+const EN_NUM = ['zero','one','two','three','four','five','six','seven','eight','nine','ten',
+  'eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
+const JA_NUM = ['ぜろ','いち','に','さん','よん','ご','ろく','なな','はち','きゅう','じゅう',
+  'じゅういち','じゅうに','じゅうさん','じゅうよん','じゅうご','じゅうろく','じゅうなな','じゅうはち','じゅうきゅう','にじゅう'];
+const JA_KO  = ['','いっこ','にこ','さんこ','よんこ','ごこ','ろっこ','ななこ','はっこ','きゅうこ','じゅっこ'];
+const JA_HON = ['','いっぽん','にほん','さんぼん','よんほん','ごほん','ろっぽん','ななほん','はっぽん','きゅうほん','じゅっぽん'];
+const PRAISE = ['Wow, you found it!', 'Yes! You looked so carefully!', 'You did it!', 'Woo-hoo! You kept trying!', 'Awesome counting!', 'Yay! Great job thinking!'];
+const PRAISE_JA = ['やったね！', 'すごい！', 'できたね！', 'よくみてたね！'];
+const DICE = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+const MASTERY_DAYS = 3;   // correct on 3 separate days = mastered
 
-// ---------- storage (on-device only) ----------
+// ================= storage (on-device only) =================
 const KEY = 'abc123-v1';
-function load() {
-  try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; }
-}
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
-const state = Object.assign({ letters: {}, numbers: {}, sessions: {}, minutes: {}, photo: null, name: '' }, load());
+const state = Object.assign({ letters: {}, numbers: {}, sessions: {}, secs: {}, lessonDone: {}, photo: null, name: '', limit: 20 }, load());
 // The child's name lives only on the device (set in the parent panel) — never in the published code.
 const kid = () => state.name || 'friend';
+const buildOrder = () => { const own = [...new Set(state.name.toUpperCase().replace(/[^A-Z]/g, '').split(''))]; return [...own, ...BASE_ORDER.filter(L => !own.includes(L))]; };
+let ORDER = buildOrder();
 const today = () => new Date().toLocaleDateString('en-CA');
-function markCorrect(bucket, key) {
-  const rec = state[bucket][key] || (state[bucket][key] = { days: [], tries: 0, misses: 0 });
-  rec.tries++;
-  if (!rec.days.includes(today())) rec.days.push(today());
-  save();
-}
-function markMiss(bucket, key) {
-  const rec = state[bucket][key] || (state[bucket][key] = { days: [], tries: 0, misses: 0 });
-  rec.tries++; rec.misses++; save();
-}
+function rec(bucket, key) { return state[bucket][key] || (state[bucket][key] = { days: [], tries: 0, misses: 0 }); }
+function markCorrect(bucket, key) { const r = rec(bucket, key); r.tries++; if (!r.days.includes(today())) r.days.push(today()); save(); }
+function markMiss(bucket, key) { const r = rec(bucket, key); r.tries++; r.misses++; save(); }
 const mastered = (bucket, key) => (state[bucket][key]?.days.length || 0) >= MASTERY_DAYS;
+const knownLetters = () => { const s = ORDER.filter(L => state.letters[L]); return s.length >= 3 ? s : ORDER.slice(0, 5); };
+const countMax = () => Object.keys(state.numbers).filter(k => k.startsWith('count') && mastered('numbers', k)).length >= 3 ? 8 : 5;
 if ('storage' in navigator && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 
-// ---------- speech (one language per utterance, EN then JA) ----------
+// Daily play-time cap (minutes, set in the parent panel). Counted only while the app is on screen.
+let playing = false;
+setInterval(() => { if (playing && document.visibilityState === 'visible') { state.secs[today()] = (state.secs[today()] || 0) + 5; save(); } }, 5000);
+const overLimit = () => (state.secs[today()] || 0) >= state.limit * 60;
+
+// ================= sound effects (Web Audio, no files) =================
+let ac = null;
+function audio() {
+  if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+  if (ac.state === 'suspended') ac.resume();
+  return ac;
+}
+function tone(freq, t0, dur, type = 'sine', vol = 0.16, slideTo) {
+  const a = audio(); if (!a) return;
+  const t = a.currentTime + t0, o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t);
+  if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + 0.05);
+}
+const SCALE = [523, 587, 659, 784, 880, 1047, 1175, 1319, 1568, 1760, 2093];
+const sfx = {
+  tap:   () => tone(700, 0, .07, 'triangle', .1),
+  count: n => tone(SCALE[(n - 1) % SCALE.length], 0, .2, 'triangle', .18),
+  yay:   () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * .08, .25, 'triangle', .16)),
+  pop:   () => { tone(1200, 0, .09, 'square', .07, 200); tone(300, .02, .12, 'sine', .12, 80); },
+  soft:  () => tone(392, 0, .3, 'sine', .08, 330),              // gentle "hmm" — never a buzzer
+  bark:  () => { tone(480, 0, .1, 'sawtooth', .1, 240); tone(540, .17, .1, 'sawtooth', .1, 260); },
+  boing: () => tone(220, 0, .35, 'sine', .14, 660),
+  whoosh:() => tone(200, 0, .3, 'triangle', .06, 900),
+  snore: () => tone(140, 0, .8, 'sine', .08, 110),
+};
+
+// ================= speech: one language per utterance, lively =================
 let voices = [];
 function loadVoices() { voices = speechSynthesis.getVoices(); }
 if ('speechSynthesis' in window) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
 function pickVoice(lang) {
   const re = lang === 'ja' ? /^ja[-_]/i : /^en[-_]US/i;
   const list = voices.filter(v => re.test(v.lang));
-  return list.find(v => /Kyoko|Samantha|Nicky|Google/.test(v.name)) || list[0] || null;
+  return list.find(v => /Enhanced|Premium/i.test(v.name)) || list.find(v => /Kyoko|Samantha|Nicky|Google/.test(v.name)) || list[0] || null;
 }
+// Moods vary pitch and speed so the voice doesn't sound flat.
+const MOODS = { normal: [1.0, 1.3], excited: [1.08, 1.6], slow: [0.8, 1.25], calm: [0.92, 1.15], sing: [0.95, 1.45] };
 const wait = ms => new Promise(r => setTimeout(r, ms));
-let gen = 0; // bumped on every screen change so stale speech sequences stop
-function say(text, lang = 'en') {
+let gen = 0;   // bumped on every screen change so stale speech sequences stop
+function say(text, lang = 'en', mood = 'normal', pitchAdd = 0) {
   const g = gen;
-  sayLine(text, lang === 'ja' ? text : null);
+  const el = document.querySelector('.say'); if (el) el.textContent = text;
   return new Promise(resolve => {
     if (!('speechSynthesis' in window) || g !== gen) return resolve();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = lang === 'ja' ? 'ja-JP' : 'en-US';
     const v = pickVoice(lang); if (v) u.voice = v;
-    u.rate = lang === 'ja' ? 0.95 : 0.85; u.pitch = 1.1;
+    const [rate, pitch] = MOODS[mood] || MOODS.normal;
+    u.rate = rate * (lang === 'ja' ? 1.05 : 0.92); u.pitch = Math.min(2, pitch + pitchAdd + (Math.random() * .1 - .05));
     let done = false; const fin = () => { if (!done) { done = true; resolve(); } };
     u.onend = fin; u.onerror = fin;
-    setTimeout(fin, 1500 + text.length * 120);
+    setTimeout(fin, 1500 + text.length * 110);
     speechSynthesis.speak(u);
   });
 }
 async function seq(...lines) {
   const g = gen;
-  for (const [text, lang] of lines) {
-    if (g !== gen) return false;
-    await say(text, lang);
-    await wait(200);
-  }
+  for (const [text, lang, mood, p] of lines) { if (g !== gen) return false; await say(text, lang, mood, p); await wait(150); }
   return g === gen;
 }
-function stopSpeech() { gen++; if ('speechSynthesis' in window) speechSynthesis.cancel(); }
-function sayLine(text) { const el = document.querySelector('.say'); if (el) el.textContent = text; }
+function hush() { gen++; if ('speechSynthesis' in window) speechSynthesis.cancel(); }
 
-// ---------- UI helpers ----------
-const app = document.getElementById('app');
+// ================= Toshi (black dog, yellow collar) =================
+const toshiSVG = () => `<svg class="tsvg" viewBox="0 0 120 120" aria-hidden="true">
+  <g class="t-tail"><path d="M86 84 Q108 76 104 52" stroke="#151515" stroke-width="9" fill="none" stroke-linecap="round"/></g>
+  <ellipse cx="60" cy="98" rx="32" ry="24" fill="#1A1A1A"/><ellipse cx="60" cy="104" rx="14" ry="12" fill="#2C2C2C"/>
+  <g class="t-head">
+    <g class="t-ear-l"><ellipse cx="33" cy="44" rx="11" ry="21" fill="#0B0B0B" transform="rotate(22 33 44)"/></g>
+    <g class="t-ear-r"><ellipse cx="87" cy="44" rx="11" ry="21" fill="#0B0B0B" transform="rotate(-22 87 44)"/></g>
+    <circle cx="60" cy="50" r="27" fill="#1A1A1A"/><ellipse cx="60" cy="63" rx="15" ry="11" fill="#363636"/>
+    <g class="t-eyes"><circle cx="49" cy="46" r="5.5" fill="#fff"/><circle cx="71" cy="46" r="5.5" fill="#fff"/>
+      <circle cx="50" cy="47" r="3.4" fill="#111"/><circle cx="72" cy="47" r="3.4" fill="#111"/>
+      <circle cx="51.2" cy="45.6" r="1.2" fill="#fff"/><circle cx="73.2" cy="45.6" r="1.2" fill="#fff"/></g>
+    <ellipse cx="60" cy="58" rx="5.5" ry="4" fill="#000"/><ellipse cx="58.5" cy="57" rx="1.6" ry="1" fill="#555"/>
+    <path class="t-tongue" d="M55.5 67 Q60 78 64.5 67 Z" fill="#FF7A9A"/>
+  </g>
+  <path d="M37 77 Q60 88 83 77" stroke="#FFC93C" stroke-width="6.5" fill="none" stroke-linecap="round"/>
+  <circle cx="60" cy="85" r="4.5" fill="#FFC93C" stroke="#E0A800" stroke-width="1.2"/>
+</svg>`;
+const toshi = (cls = '') => `<div class="toshi ${cls}">${state.photo ? `<img src="${state.photo}" alt="Toshi">` : toshiSVG()}</div>`;
 const rand = n => Math.floor(Math.random() * n);
+const pick = a => a[rand(a.length)];
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-const TOSHI_SVG = `<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#F2D6B3"/>
-  <ellipse cx="22" cy="40" rx="14" ry="24" fill="#8B5A2B" transform="rotate(-18 22 40)"/>
-  <ellipse cx="78" cy="40" rx="14" ry="24" fill="#8B5A2B" transform="rotate(18 78 40)"/>
-  <circle cx="50" cy="55" r="30" fill="#C98A4B"/><ellipse cx="50" cy="68" rx="16" ry="12" fill="#F3DDC0"/>
-  <circle cx="39" cy="50" r="4.5" fill="#3B2A1A"/><circle cx="61" cy="50" r="4.5" fill="#3B2A1A"/>
-  <ellipse cx="50" cy="62" rx="6" ry="4.5" fill="#3B2A1A"/><path d="M44 72 Q50 77 56 72" stroke="#3B2A1A" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`;
-const toshi = (cls = '') => `<div class="toshi ${cls}">${state.photo ? `<img src="${state.photo}" alt="Toshi">` : TOSHI_SVG}</div>`;
-function render(html, opts = {}) {
-  stopSpeech();
-  app.innerHTML = html + (opts.ear ? '<button class="btn ear" id="ear" aria-label="say it again">👂</button>' : '')
-    + '<button class="gear" id="gear" aria-label="parents: hold">⚙︎</button>';
-  if (opts.ear) document.getElementById('ear').onclick = opts.ear;
-  bindParentGate();
+function burst(el, chars, n = 12) {
+  if (!el) return; const r = el.getBoundingClientRect();
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement('span'); s.className = 'burst'; s.textContent = pick(chars);
+    const ang = Math.random() * Math.PI * 2, dist = 80 + Math.random() * 110;
+    s.style.left = (r.left + r.width / 2) + 'px'; s.style.top = (r.top + r.height / 2) + 'px';
+    s.style.setProperty('--dx', Math.cos(ang) * dist + 'px'); s.style.setProperty('--dy', Math.sin(ang) * dist + 'px');
+    document.body.appendChild(s); setTimeout(() => s.remove(), 1100);
+  }
 }
-function hop() { const t = document.querySelector('.toshi'); if (t) { t.classList.remove('hop'); void t.offsetWidth; t.classList.add('hop'); } }
-function maybeSurprise() { // occasional, unannounced celebration — never a promised reward
-  if (Math.random() > 0.3) return;
+function react(kind = 'happy') {
+  const t = document.querySelector('.toshi'); if (!t) return;
+  t.classList.remove('jump', 'spin', 'wiggle', 'flip', 'tilt', 'excited');
+  void t.offsetWidth;
+  if (kind === 'happy') {
+    t.classList.add(pick(['jump', 'spin', 'wiggle', 'flip']), 'excited');
+    burst(t, ['💛', '🦴', '⭐', '🐾']);
+    setTimeout(() => t.classList.remove('excited'), 1800);
+  } else if (kind === 'think') {
+    t.classList.add('tilt'); setTimeout(() => t.classList.remove('tilt'), 1500);
+  }
+}
+function confetti() {
   const c = document.createElement('div'); c.className = 'confetti';
-  for (let i = 0; i < 18; i++) {
-    const s = document.createElement('span'); s.textContent = ['🦴','⭐','🐾','🎈'][rand(4)];
+  for (let i = 0; i < 22; i++) {
+    const s = document.createElement('span'); s.textContent = pick(['🦴', '⭐', '🐾', '🎈', '💛']);
     s.style.left = rand(100) + 'vw'; s.style.animationDelay = (Math.random() * .5) + 's'; c.appendChild(s);
   }
   document.body.appendChild(c); setTimeout(() => c.remove(), 2400);
 }
-const praise = () => PRAISE[rand(PRAISE.length)];
+// Celebrate a right answer: Toshi reacts, a chime plays, and now and then (unannounced) confetti.
+function celebrate() { sfx.yay(); react('happy'); if (Math.random() < 0.25) confetti(); }
+const praise = () => pick(PRAISE);
 
-// ---------- session flow ----------
-let session = null;
-function startSession() {
-  const target = LETTERS.find(x => !mastered('letters', x.L)) || LETTERS[rand(LETTERS.length)];
-  const seen = LETTERS.filter(x => x !== target && state.letters[x.L]);
-  session = { start: Date.now(), target, review: seen.length ? seen[rand(seen.length)] : null, number: 3 };
-  state.sessions[today()] = (state.sessions[today()] || 0) + 1; save();
-  hello();
+// ================= screen helper =================
+const app = document.getElementById('app');
+const $ = s => document.querySelector(s);
+function render(html, opts = {}) {
+  hush();
+  app.innerHTML = html
+    + (opts.ear ? '<button class="btn ear" id="ear" aria-label="say it again">👂</button>' : '')
+    + (opts.home ? '<button class="btn home" id="home" aria-label="back to games">🏠</button>' : '')
+    + '<button class="gear" id="gear" aria-label="parents: hold">⚙︎</button>';
+  if (opts.ear) $('#ear').onclick = () => { sfx.tap(); opts.ear(); };
+  if (opts.home) $('#home').onclick = () => { sfx.whoosh(); playground(); };
+  // Toshi is tappable only on non-lesson screens, so he never distracts from a task.
+  if (opts.petToshi) document.querySelectorAll('.toshi').forEach(t => t.onclick = () => {
+    sfx.bark(); react('happy'); hush(); say(pick(['Woof woof!', 'Hee hee, that tickles!', 'Woof! I love you!']), 'en', 'excited');
+  });
+  bindParentGate();
 }
-function endSession() {
-  const mins = Math.round((Date.now() - session.start) / 60000);
-  state.minutes[today()] = (state.minutes[today()] || 0) + mins; save();
-}
+const letterArt = it => it.emoji === 'TOSHI' ? `<div class="mini-toshi">${toshiSVG()}</div>` : `<div class="emoji">${it.emoji}</div>`;
 
+// ================= start / lesson =================
 function startScreen() {
-  const done = (state.sessions[today()] || 0) >= SESSIONS_PER_DAY;
-  if (done) return restScreen();
+  playing = false;
+  if (overLimit()) return sleepy();
   render(`${toshi()}<button class="btn go" id="go" aria-label="start">▶︎</button>`);
-  document.getElementById('go').onclick = () => {
-    // iOS only allows speech after a tap — this tap unlocks it.
+  $('#go').onclick = () => {
+    audio();   // iOS: sound and speech only work after a tap — this tap unlocks both.
     if ('speechSynthesis' in window) { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); }
-    startSession();
+    playing = true; sfx.yay();
+    state.lessonDone[today()] ? playground(true) : startLesson();
   };
 }
 
-function hello() {
+let lesson = null;
+function startLesson() {
+  const target = item(ORDER.find(L => !mastered('letters', L)) || pick(ORDER));
+  const seen = ORDER.filter(L => L !== target.L && state.letters[L]);
+  lesson = { target, review: seen.length ? item(pick(seen)) : null, number: 3 };
+  state.sessions[today()] = (state.sessions[today()] || 0) + 1; save();
   render(`${toshi()}<div class="word">Hi, ${kid()}!<span class="ja">こんにちは！</span></div><div class="say"></div>
-    <button class="btn go" id="next">🐾</button>`, { ear: () => run() });
-  const run = async () => { hop(); await seq([`Hi ${kid()}! It's me, Toshi. Let's play!`, 'en'], ['いっしょに あそぼう！', 'ja']); };
-  document.getElementById('next').onclick = () => letterCard(session.target);
+    <button class="btn go" id="next">🐾</button>`, { ear: () => run(), petToshi: true });
+  const run = async () => { react('happy'); sfx.bark(); await seq([`Hi ${kid()}! It's me, Toshi! Let's play!`, 'en', 'excited'], ['いっしょに あそぼう！', 'ja', 'excited']); };
+  $('#next').onclick = () => { sfx.tap(); letterCard(lesson.target, () => findIt(lesson.target, () => lesson.review ? findIt(lesson.review, choose) : choose())); };
   run();
 }
 
-function letterCard(item) {
-  render(`<div class="big-letter" id="letter">${item.L}</div>
-    <div class="emoji">${item.emoji}</div>
-    <div class="word">${item.en}<span class="ja">${item.ja}</span></div><div class="say"></div>
+function letterCard(it, next) {
+  render(`<div class="big-letter" id="letter">${it.L}</div>${letterArt(it)}
+    <div class="word">${it.en}<span class="ja">${it.ja}</span></div><div class="say"></div>
     <button class="btn go" id="next">🐾</button>`, { ear: () => run() });
-  const run = () => seq([`${item.L}.`, 'en'], [`${item.L} says ${item.snd}.`, 'en'], [`${item.L} is for ${item.en}.`, 'en'], [item.ja, 'ja']);
-  document.getElementById('letter').onclick = () => seq([`${item.L}. ${item.snd}.`, 'en']);
-  document.getElementById('next').onclick = () => findIt(item, () => session.review ? findIt(session.review, choose) : choose());
+  const run = () => seq([`${it.L}!`, 'en', 'excited'], [`${it.L} says... ${it.snd}!`, 'en', 'slow'], [forLine(it), 'en', 'sing'], [it.ja, 'ja', 'normal']);
+  $('#letter').onclick = () => { const b = $('#letter'); b.classList.remove('boing'); void b.offsetWidth; b.classList.add('boing'); sfx.boing(); hush(); seq([`${it.L}! ${it.snd}!`, 'en', 'excited']); };
+  $('#next').onclick = () => { sfx.tap(); next(); };
   run();
 }
 
-function findIt(item, next) {
-  const opts = shuffle([item.L, ...shuffle(DISTRACTORS.filter(c => c !== item.L)).slice(0, 2)]);
+function findIt(it, next, pool) {
+  const others = shuffle((pool || 'CEFHKMORSTUVWXZ'.split('')).filter(c => c !== it.L)).slice(0, 2);
+  const opts = shuffle([it.L, ...others]);
   let misses = 0, finished = false;
   render(`${toshi('small')}<div class="row">${opts.map(c => `<button class="btn choice" data-c="${c}">${c}</button>`).join('')}</div>
-    <div class="say"></div>`, { ear: () => ask() });
-  const ask = () => seq([`Which one is ${item.L}?`, 'en']);
+    <div class="say"></div>`, { ear: () => ask(), home: !lesson });
+  const ask = () => seq([`Where is ${it.L}?`, 'en', 'excited']);
   app.querySelectorAll('.choice').forEach(b => b.onclick = async () => {
     if (finished) return;
     const c = b.dataset.c;
-    if (c === item.L) {
-      finished = true; b.classList.add('good'); hop(); maybeSurprise();
-      if (misses === 0) markCorrect('letters', item.L);
-      const ok = await seq([`Yes! That's ${item.L}. ${praise()}`, 'en']);
-      if (ok) setTimeout(next, 400);
+    if (c === it.L) {
+      finished = true; b.classList.add('good'); celebrate();
+      if (misses === 0) markCorrect('letters', it.L);
+      const ok = await seq([`Yes! That's ${it.L}! ${praise()}`, 'en', 'excited']);
+      if (ok) setTimeout(next, 300);
     } else {
-      misses++; markMiss('letters', item.L); b.classList.add('dim');
-      const right = app.querySelector(`[data-c="${item.L}"]`);
-      if (misses >= 2) right.classList.add('glow');      // show the answer gently — no buzzer
-      await seq([`That's ${c}. Let's find ${item.L}.`, 'en']);
+      misses++; markMiss('letters', it.L); b.classList.add('dim', 'shake'); sfx.soft(); react('think');
+      if (misses >= 2) app.querySelector(`[data-c="${it.L}"]`).classList.add('glow');   // show the answer gently
+      await seq([`That's ${c}. Let's find ${it.L}!`, 'en', 'calm']);
     }
   });
   ask();
@@ -270,153 +435,377 @@ function findIt(item, next) {
 
 function choose() {
   render(`${toshi('small')}<div class="row">
-      <button class="btn card" id="count"><span class="emoji">🍎</span>How many?<span class="muted">いくつ？</span></button>
-      <button class="btn card" id="walk"><span class="emoji">🐾</span>Toshi's walk<span class="muted">おさんぽ</span></button>
+      <button class="tile" id="count" style="width:min(40vw,240px)"><span class="emoji">🍎</span>How many?<small>いくつ？</small></button>
+      <button class="tile yellow" id="walk" style="width:min(40vw,240px)"><span class="emoji">🐾</span>Toshi's walk<small>おさんぽ</small></button>
     </div><div class="say"></div>`, { ear: () => ask() });
-  const ask = () => seq(['What do you want to play?', 'en']);
-  document.getElementById('count').onclick = () => howMany(0);
-  document.getElementById('walk').onclick = () => walk();
+  const ask = () => seq(['What do you want to play?', 'en', 'excited']);
+  $('#count').onclick = () => { sfx.tap(); howMany(2, bridge); };
+  $('#walk').onclick = () => { sfx.tap(); walk(10, bridge); };
   ask();
-}
-
-// How Many: touch-count each object, then the cardinal question (plan §4-2).
-function howMany(round) {
-  const max = mastered('numbers', 'count3') ? 5 : 4;
-  let n = 1 + rand(max);
-  if (round > 0 && n === session.number) n = n % max + 1; // no repeat back-to-back
-  session.number = n;
-  let counted = 0;
-  render(`<div class="say"></div><div class="apples">${Array.from({ length: n }, (_, i) =>
-      `<button class="apple" data-i="${i}">🍎</button>`).join('')}</div>`, { ear: () => ask() });
-  const ask = () => seq(['Touch each apple and count!', 'en']);
-  app.querySelectorAll('.apple').forEach(a => a.onclick = async () => {
-    if (a.classList.contains('counted')) return;
-    counted++; a.classList.add('counted'); a.insertAdjacentHTML('beforeend', `<span class="tag">${counted}</span>`);
-    stopSpeech(); await say(EN_NUM[counted], 'en');
-    if (counted === n) { await wait(300); cardinal(n, round); }
-  });
-  ask();
-}
-function cardinal(n, round) {
-  const opts = shuffle([n, ...shuffle([1, 2, 3, 4, 5].filter(x => x !== n)).slice(0, 2)]);
-  let misses = 0, finished = false;
-  render(`<div class="apples">${'<div class="apple counted">🍎</div>'.repeat(n)}</div>
-    <div class="row">${opts.map(x => `<button class="btn choice" data-n="${x}">${x}</button>`).join('')}</div>
-    <div class="say"></div>`, { ear: () => ask() });
-  const ask = () => seq(['So, how many apples?', 'en']);
-  app.querySelectorAll('.choice').forEach(b => b.onclick = async () => {
-    if (finished) return;
-    const x = +b.dataset.n;
-    if (x === n) {
-      finished = true; b.classList.add('good'); maybeSurprise();
-      if (misses === 0) markCorrect('numbers', 'count' + n);
-      const ok = await seq([`Yes! ${EN_NUM[n]} ${n === 1 ? 'apple' : 'apples'}! ${praise()}`, 'en'], [`りんごが ${JA_KO[n]}。`, 'ja']);
-      if (ok) setTimeout(() => round < 1 ? howMany(round + 1) : bridge(), 400);
-    } else {
-      misses++; markMiss('numbers', 'count' + n); b.classList.add('dim');
-      if (misses >= 2) app.querySelector(`[data-n="${n}"]`).classList.add('glow');
-      await seq(["Let's count again together.", 'en'], [Array.from({ length: n }, (_, i) => EN_NUM[i + 1]).join(', ') + '.', 'en']);
-    }
-  });
-  ask();
-}
-
-// Toshi's Walk: linear 1–10 track, say each number while moving (Siegler & Ramani 2008).
-function walk() {
-  let pos = 0, steps = 0, rolling = false;
-  const draw = () => {
-    const track = Array.from({ length: 10 }, (_, i) => {
-      const k = i + 1;
-      return `<div class="sq ${k < pos ? 'passed' : ''} ${k === pos ? 'here' : ''}">${k === pos ? '<span class="pin">🐕</span>' : ''}${k}</div>`;
-    }).join('');
-    render(`<div class="track">${track}</div><div class="say"></div>
-      ${pos === 10 ? '' : `<div class="row">
-        <button class="btn" id="die" ${steps ? 'disabled style="opacity:.4"' : ''}><div class="die">🎲</div></button>
-        <button class="btn go" id="step" ${steps ? '' : 'disabled style="opacity:.4"'}>🐾 ${steps ? '<div class="pips">' + '<span class="pip"></span>'.repeat(steps) + '</div>' : ''}</button>
-      </div>`}`, { ear: () => seq([steps ? 'Tap the paw to walk!' : 'Tap the dice!', 'en']) });
-    if (pos === 10) return;
-    document.getElementById('die').onclick = async () => {
-      if (rolling || steps) return; rolling = true;
-      steps = 1 + rand(2);           // 1 or 2 — small, countable moves
-      draw(); await seq([steps === 1 ? 'One step!' : 'Two steps!', 'en']); rolling = false;
-    };
-    document.getElementById('step').onclick = async () => {
-      if (!steps) return;
-      pos = Math.min(10, pos + 1); steps = pos === 10 ? 0 : steps - 1;
-      draw(); await say(EN_NUM[pos], 'en');
-      if (pos === 10) { maybeSurprise(); markCorrect('numbers', 'walk10'); session.number = 10;
-        const ok = await seq(['Ten! Toshi made it home! You counted every step!', 'en'], ['じゅう！ゴール！', 'ja']);
-        if (ok) setTimeout(bridge, 500); }
-    };
-  };
-  draw();
-  seq(["Let's walk Toshi to ten. Say each number with me!", 'en']);
 }
 
 function bridge() {
-  const t = session.target, n = session.number;
-  render(`${toshi('small')}<div class="bridge">
-      <div>${t.L} — ${t.en} <span class="ja">— ${t.ja}</span></div>
-      <div>${n} — ${EN_NUM[n]} <span class="ja">— ${JA_NUM[n]}</span></div>
+  const t = lesson.target, n = lesson.number;
+  render(`${toshi('small')}<div style="display:flex;flex-direction:column;gap:14px;font-size:min(8vw,44px);font-weight:800">
+      <div>${t.L} — ${t.en} <span style="color:var(--soft)">— ${t.ja}</span></div>
+      <div>${n} — ${EN_NUM[n]} <span style="color:var(--soft)">— ${JA_NUM[n]}</span></div>
     </div><div class="say"></div><button class="btn go" id="next">🐾</button>`, { ear: () => run() });
-  const run = () => seq([`${t.L}. ${t.en}.`, 'en'], [t.ja, 'ja'], [`${EN_NUM[n]}.`, 'en'], [JA_NUM[n], 'ja']);
-  document.getElementById('next').onclick = mission;
+  const run = () => seq([`${t.L}! ${t.en}!`, 'en', 'sing'], [t.ja, 'ja'], [`${EN_NUM[n]}!`, 'en', 'sing'], [JA_NUM[n], 'ja']);
+  $('#next').onclick = () => { sfx.tap(); mission(); };
   run();
 }
 
 function mission() {
-  const t = session.target;
-  render(`${toshi()}<div class="word">🏠 🔎 ${t.L}?</div><div class="say"></div><button class="btn go" id="next">🐾</button>`,
-    { ear: () => run() });
-  const run = () => seq([`Mission! Find something at home that starts with ${t.L}, like ${t.en}!`, 'en'],
-                        [`おうちで ${t.L} ではじまるもの、さがしてみてね。`, 'ja']);
-  document.getElementById('next').onclick = bye;
+  const t = lesson.target;
+  render(`${toshi()}<div class="word">🏠 🔎 ${t.L}?</div><div class="say"></div><button class="btn go" id="next">🐾</button>`, { ear: () => run() });
+  const run = () => seq([`Secret mission! Find something at home that starts with ${t.L}... like ${t.en}!`, 'en', 'excited'],
+                        [`おうちで ${t.L} ではじまるもの、さがしてみてね！`, 'ja']);
+  $('#next').onclick = () => { sfx.tap(); lessonDone(); };
   run();
 }
 
-function bye() {
-  endSession();
-  render(`${toshi()}<div class="word">Bye-bye!<span class="ja">またね！</span></div><div class="say"></div>`);
-  hop();
-  seq([`Great playing today, ${kid()}! See you next time!`, 'en'], ['またあしたね！', 'ja']).then(ok => { if (ok) setTimeout(restScreen, 1500); });
+function lessonDone() {
+  state.lessonDone[today()] = true; lesson = null; save();
+  confetti(); sfx.yay();
+  render(`${toshi()}<div class="word">Great job!<span class="ja">よくできました！</span></div><div class="say"></div>
+    <button class="btn go" id="more" style="font-size:28px">🎈 More games!</button>`, { petToshi: true });
+  react('happy');
+  seq([`Great job today, ${kid()}! Want to play more games with me?`, 'en', 'excited'], ['もっと あそぶ？', 'ja', 'excited']);
+  $('#more').onclick = () => { sfx.tap(); playground(); };
 }
 
-function restScreen() {
-  render(`${toshi()}<div class="word">💤 Toshi is resting.<span class="ja">おやすみ中</span></div>
-    <div class="muted">See you tomorrow! / またあした</div>`);
+// ================= playground (free play after the lesson) =================
+const GAMES = [
+  { id: 'abc',   emoji: '🔤', en: 'ABC',          ja: 'エービーシー', run: () => abcExplorer() },
+  { id: 'pop',   emoji: '🎈', en: 'Pop!',         ja: 'ふうせん',     run: () => balloons() },
+  { id: 'write', emoji: '✏️', en: 'Write',        ja: 'かいてみよう', run: () => trace() },
+  { id: 'find',  emoji: '🔍', en: 'Find it',      ja: 'みつけて',     run: () => findRound(3) },
+  { id: 'count', emoji: '🍎', en: 'How many?',    ja: 'いくつ？',     run: () => howMany(3, playground) },
+  { id: 'feed',  emoji: '🦴', en: 'Feed Toshi',   ja: 'ごはん',       run: () => feedToshi(3) },
+  { id: 'look',  emoji: '👀', en: 'Quick look',   ja: 'パッとみて',   run: () => quickLook(4) },
+  { id: 'walk',  emoji: '🐾', en: "Toshi's walk", ja: 'おさんぽ',     run: () => walk(mastered('numbers', 'walk10') || (state.numbers.walk10?.days.length || 0) >= 2 ? 20 : 10, playground) },
+  { id: '123',   emoji: '🔢', en: '123',          ja: 'すうじ',       run: () => numExplorer() },
+];
+function playground(greet) {
+  if (overLimit()) return sleepy();
+  render(`${toshi('small')}<div class="grid">${GAMES.map((g, i) =>
+      `<button class="tile ${i % 3 === 1 ? 'yellow' : ''}" data-g="${g.id}"><span class="emoji">${g.emoji}</span>${g.en}<small>${g.ja}</small></button>`).join('')}
+    </div><div class="say"></div>`, { ear: () => ask(), petToshi: true });
+  const ask = () => seq([greet ? `Welcome back, ${kid()}! What do you want to play?` : 'What do you want to play next?', 'en', 'excited']);
+  app.querySelectorAll('.tile').forEach(b => b.onclick = () => { sfx.tap(); GAMES.find(g => g.id === b.dataset.g).run(); });
+  ask();
+}
+function sleepy() {
+  playing = false;
+  render(`${toshi('sleepy')}<div class="word">💤 Toshi is sleepy<span class="ja">おやすみ中</span></div>
+    <div class="muted">Let's play again tomorrow! / またあしたね</div><div class="say"></div>`);
+  sfx.snore();
+  seq(["Yawn... Toshi is sleepy. Let's play again tomorrow!", 'en', 'calm'], ['またあしたね。', 'ja', 'calm']);
 }
 
-// ---------- parent gate: hold the gear for 2 seconds ----------
+// ---- Find it (free-play version) ----
+function findRound(rounds) {
+  const pool = knownLetters();
+  let i = 0;
+  const next = () => (i++ < rounds ? findIt(item(pick(pool)), next, ABC.filter(c => !'BDPQ'.includes(c) || pool.includes(c))) : playground());
+  next();
+}
+
+// ---- How many? (touch-count, then the cardinal question) ----
+function howMany(rounds, done, round = 0, last = 0) {
+  const max = countMax();
+  let n = 1 + rand(max); if (n === last) n = n % max + 1;
+  if (lesson) lesson.number = n;
+  const thing = pick(['🍎', '🐟', '🚚', '⚽', '🦆', '🍪']);
+  let counted = 0;
+  render(`<div class="say"></div><div class="apples">${Array.from({ length: n }, () => `<button class="apple">${thing}</button>`).join('')}</div>`,
+    { ear: () => ask(), home: !lesson });
+  const ask = () => seq(['Touch each one and count!', 'en', 'excited']);
+  app.querySelectorAll('.apple').forEach(a => a.onclick = async () => {
+    if (a.classList.contains('counted')) return;
+    counted++; a.classList.add('counted', 'boing'); a.insertAdjacentHTML('beforeend', `<span class="tag">${counted}</span>`);
+    sfx.count(counted); hush(); await say(EN_NUM[counted] + '!', 'en', 'sing', counted * 0.05);
+    if (counted === n) { await wait(250); cardinal(); }
+  });
+  function cardinal() {
+    const opts = shuffle([n, ...shuffle(Array.from({ length: max }, (_, k) => k + 1).filter(x => x !== n)).slice(0, 2)]);
+    let misses = 0, finished = false;
+    render(`${toshi('small')}<div class="apples">${`<div class="apple counted">${thing}</div>`.repeat(n)}</div>
+      <div class="row">${opts.map(x => `<button class="btn choice" data-n="${x}">${x}</button>`).join('')}</div>
+      <div class="say"></div>`, { ear: () => q(), home: !lesson });
+    const q = () => seq(['So... how many?', 'en', 'excited']);
+    app.querySelectorAll('.choice').forEach(b => b.onclick = async () => {
+      if (finished) return;
+      const x = +b.dataset.n;
+      if (x === n) {
+        finished = true; b.classList.add('good'); celebrate();
+        if (misses === 0) markCorrect('numbers', 'count' + n);
+        const ok = await seq([`Yes! ${EN_NUM[n]}! ${praise()}`, 'en', 'excited'], [`${JA_NUM[n]}！ ${pick(PRAISE_JA)}`, 'ja', 'excited']);
+        if (ok) setTimeout(() => round + 1 < rounds ? howMany(rounds, done, round + 1, n) : done(), 300);
+      } else {
+        misses++; markMiss('numbers', 'count' + n); b.classList.add('dim', 'shake'); sfx.soft(); react('think');
+        if (misses >= 2) app.querySelector(`[data-n="${n}"]`).classList.add('glow');
+        await seq(["Hmm, let's count again together!", 'en', 'calm'], [Array.from({ length: n }, (_, k) => EN_NUM[k + 1]).join('... ') + '!', 'en', 'sing']);
+      }
+    });
+    q();
+  }
+  ask();
+}
+
+// ---- Toshi's walk: linear board, say each number while moving (Siegler & Ramani 2008) ----
+function walk(goal, done) {
+  let pos = 0, steps = 0, rolling = false;
+  const dieFace = n => `<div class="die-face">${Array.from({ length: 9 }, (_, k) => `<i class="${(DICE[n] || []).includes(k) ? 'on' : ''}"></i>`).join('')}</div>`;
+  const draw = hopping => {
+    const sq = Array.from({ length: goal }, (_, i) => {
+      const k = i + 1;
+      return `<div class="sq ${k < pos ? 'passed' : ''} ${k === pos ? 'here' : ''}" data-k="${k}">${k === pos ? `<span class="pin ${hopping ? 'hopping' : ''}">${toshiSVG()}</span>` : ''}${k}</div>`;
+    }).join('');
+    render(`${pos === 0 ? toshi('small') : ''}<div class="track-wrap"><div class="track ${goal > 10 ? 'long' : ''}">${sq}</div></div><div class="say"></div>
+      ${pos === goal ? '' : `<div class="row">
+        <button class="btn" id="die" ${steps ? 'disabled style="opacity:.4"' : ''}>${steps ? dieFace(steps) : '<span style="font-size:52px">🎲</span>'}</button>
+        <button class="btn go" id="step" ${steps ? '' : 'disabled style="opacity:.4"'}>🐾</button>
+      </div>`}`, { ear: () => seq([steps ? 'Tap the paw to walk!' : 'Tap the dice!', 'en', 'excited']), home: !lesson });
+    const here = app.querySelector('.sq.here'); if (here) here.scrollIntoView({ inline: 'center', block: 'nearest' });
+    if (pos === goal) return;
+    $('#die').onclick = async () => {
+      if (rolling || steps) return; rolling = true;
+      $('#die').classList.add('rolling'); sfx.whoosh(); await wait(500);
+      steps = Math.min(1 + rand(goal > 10 ? 3 : 2), goal - pos);   // small, countable moves
+      draw(); await seq([`${EN_NUM[steps]}!`, 'en', 'excited']); rolling = false;
+    };
+    $('#step').onclick = async () => {
+      if (!steps) return;
+      pos++; steps = pos === goal ? 0 : steps - 1;
+      draw(true); sfx.count(pos); await say(EN_NUM[pos] + '!', 'en', 'sing', pos * 0.03);
+      if (pos === goal) {
+        confetti(); sfx.yay(); markCorrect('numbers', 'walk' + goal); if (lesson) lesson.number = goal;
+        const ok = await seq([`${EN_NUM[goal]}! Toshi made it home! You counted every step!`, 'en', 'excited'], [`${JA_NUM[goal]}！ゴール！`, 'ja', 'excited']);
+        if (ok) setTimeout(done, 400);
+      }
+    };
+  };
+  draw();
+  seq([`Let's walk Toshi to ${EN_NUM[goal]}! Say each number with me!`, 'en', 'excited']);
+}
+
+// ---- Feed Toshi: "give me N" ----
+function feedToshi(rounds, round = 0, last = 0) {
+  const max = Math.min(countMax(), 10);
+  let n = 1 + rand(max); if (n === last) n = n % max + 1;
+  let inBowl = 0, finished = false;
+  const draw = () => {
+    render(`${toshi()}<div class="bowl" id="bowl">${'<button class="bone in">🦴</button>'.repeat(inBowl)}</div>
+      <div class="pile">${'<button class="bone out">🦴</button>'.repeat(10 - inBowl)}</div>
+      <div class="say"></div><button class="btn go" id="done">🐾</button>`, { ear: () => ask(), home: true });
+    app.querySelectorAll('.bone.out').forEach(b => b.onclick = async () => {
+      if (finished) return; inBowl++; sfx.count(inBowl); draw(); await say(EN_NUM[inBowl] + '!', 'en', 'sing', inBowl * 0.04);
+    });
+    app.querySelectorAll('.bone.in').forEach(b => b.onclick = () => { if (finished) return; inBowl--; sfx.whoosh(); draw(); });
+    $('#done').onclick = async () => {
+      if (finished) return;
+      if (inBowl === n) {
+        finished = true; celebrate(); markCorrect('numbers', 'give' + n);
+        const ok = await seq([`Yum yum! ${EN_NUM[n]} bones! Thank you!`, 'en', 'excited'], [`ほね ${JA_HON[n]}、ありがとう！`, 'ja', 'excited']);
+        if (ok) setTimeout(() => round + 1 < rounds ? feedToshi(rounds, round + 1, n) : playground(), 300);
+      } else {
+        markMiss('numbers', 'give' + n); sfx.soft(); react('think');
+        await seq([`That's ${EN_NUM[inBowl]}. Toshi wants ${EN_NUM[n]}. ${inBowl > n ? 'Take some back!' : 'A little more!'}`, 'en', 'calm']);
+      }
+    };
+  };
+  const ask = () => seq([`Toshi is hungry! Give Toshi ${EN_NUM[n]} ${n === 1 ? 'bone' : 'bones'}!`, 'en', 'excited']);
+  draw(); sfx.bark(); ask();
+}
+
+// ---- Quick look: see a dot pattern, say how many without counting ----
+function quickLook(rounds, round = 0, last = 0) {
+  let n = 1 + rand(5); if (n === last) n = n % 5 + 1;
+  let misses = 0, finished = false;
+  const dots = `<div class="flash" id="flash">${Array.from({ length: 9 }, (_, k) => `<i class="${DICE[n].includes(k) ? 'on' : ''}"></i>`).join('')}</div>`;
+  const opts = shuffle([n, ...shuffle([1, 2, 3, 4, 5].filter(x => x !== n)).slice(0, 2)]);
+  render(`<div id="slot">${dots}</div><div class="row">${opts.map(x => `<button class="btn choice" data-n="${x}">${x}</button>`).join('')}</div><div class="say"></div>`,
+    { ear: () => show(), home: true });
+  const show = async () => { if (!$('#slot')) return; $('#slot').innerHTML = dots; sfx.whoosh(); await wait(1500); if (!finished && $('#slot')) $('#slot').innerHTML = '<div class="flash hidden">?</div>'; };
+  app.querySelectorAll('.choice').forEach(b => b.onclick = async () => {
+    if (finished) return;
+    if (+b.dataset.n === n) {
+      finished = true; b.classList.add('good'); $('#slot').innerHTML = dots; sfx.yay(); confetti(); markCorrect('numbers', 'look' + n);
+      const ok = await seq([`Yes! ${EN_NUM[n]}! Super eyes!`, 'en', 'excited'], [JA_NUM[n] + '！', 'ja', 'excited']);
+      if (ok) setTimeout(() => round + 1 < rounds ? quickLook(rounds, round + 1, n) : playground(), 300);
+    } else {
+      misses++; b.classList.add('dim', 'shake'); sfx.soft(); markMiss('numbers', 'look' + n);
+      await seq(["Let's look again!", 'en', 'calm']); show();
+    }
+  });
+  seq(['Quick! Look!', 'en', 'excited']).then(show);
+}
+
+// ---- Balloon pop: pop the target letter ----
+function balloons() {
+  const pool = knownLetters(), target = pick(pool);
+  const colors = ['#FFC93C', '#FF8FA3', '#8FD3FF', '#9BE59B', '#C9A7FF', '#FFB36B'];
+  let hits = 0, done = false;
+  const letterFor = () => Math.random() < 0.45 ? target : pick(ABC.filter(c => c !== target && !'BDPQ'.includes(c)));
+  render(`<div class="word">🎈 ${target}<span class="ja">${WORDS[target][1]}</span></div><div class="sky" id="sky"></div><div class="say"></div>`,
+    { ear: () => ask(), home: true });
+  const sky = $('#sky');
+  for (let i = 0; i < 6; i++) {
+    const b = document.createElement('button'); b.className = 'balloon';
+    b.style.left = (4 + i * 16) + '%'; b.style.background = colors[i % colors.length];
+    b.style.setProperty('--dur', (9 + Math.random() * 5) + 's'); b.style.setProperty('--delay', (-Math.random() * 10) + 's');
+    b.textContent = letterFor();
+    b.addEventListener('pointerdown', async () => {
+      if (done || b.classList.contains('popped')) return;
+      if (b.textContent === target) {
+        hits++; sfx.pop(); burst(b, ['✨', '⭐', '💛'], 8); b.classList.add('popped');
+        setTimeout(() => { b.textContent = letterFor(); b.classList.remove('popped'); }, 1500);
+        if (hits === 1) markCorrect('letters', target);
+        if (hits >= 4) {
+          done = true; confetti(); sfx.yay();
+          const ok = await seq([`Pop pop pop! You found all the ${target}s!`, 'en', 'excited'], [pick(PRAISE_JA), 'ja', 'excited']);
+          if (ok) setTimeout(playground, 300);
+        } else { hush(); say(`${target}! ${pick(['Pop!', 'Yay!', 'Again!', 'Nice!'])}`, 'en', 'excited'); }
+      } else {
+        b.classList.remove('wob'); void b.offsetWidth; b.classList.add('wob'); sfx.soft();
+        hush(); say(`That's ${b.textContent}.`, 'en', 'calm');
+      }
+    });
+    sky.appendChild(b);
+  }
+  const ask = () => seq([`Pop the ${target} balloons!`, 'en', 'excited']);
+  ask();
+}
+
+// ---- Write it: finger tracing with a generous check ----
+function trace(count = 0, letters) {
+  letters = letters || shuffle(knownLetters().slice()).slice(0, 2);
+  const L = letters[count];
+  if (!L) return playground();
+  const size = Math.max(220, Math.round(Math.min(innerWidth - 32, innerHeight * 0.58, 520)));
+  render(`<div class="say"></div><div class="trace-wrap"><canvas id="cv"></canvas></div>
+    <div class="row"><button class="btn" id="clr" style="font-size:40px">🧽</button></div>`, { ear: () => ask(), home: true });
+  const cv = $('#cv'), dpr = window.devicePixelRatio || 1;
+  cv.width = cv.height = size * dpr; cv.style.width = cv.style.height = size + 'px';
+  const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
+  const font = `800 ${Math.round(size * 0.78)}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+  // Mask of the letter, used to judge coverage.
+  const mask = document.createElement('canvas'); mask.width = mask.height = size;
+  const mc = mask.getContext('2d'); mc.font = font; mc.textAlign = 'center'; mc.textBaseline = 'middle'; mc.fillText(L, size / 2, size * 0.54);
+  const md = mc.getImageData(0, 0, size, size).data;
+  const inLetter = (x, y) => x >= 0 && y >= 0 && x < size && y < size && md[(Math.round(y) * size + Math.round(x)) * 4 + 3] > 100;
+  const step = Math.max(4, Math.round(size / 70)), targets = [];
+  for (let y = 0; y < size; y += step) for (let x = 0; x < size; x += step) if (inLetter(x, y)) targets.push([x, y]);
+  const lw = size * 0.1;
+  const ink = document.createElement('canvas'); ink.width = ink.height = size; const ic = ink.getContext('2d');
+  [ctx, ic].forEach(c => { c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = lw; });
+  ctx.strokeStyle = '#1A1A1A'; ic.strokeStyle = '#000';
+  const guide = () => { ctx.clearRect(0, 0, size, size); ctx.font = font; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#FFE59A'; ctx.fillText(L, size / 2, size * 0.54); };
+  guide();
+  let drawing = false, last = null, pts = 0, outside = 0, lifts = 0, finished = false;
+  const pos = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  const near = (x, y) => { const d = lw * 0.7; return inLetter(x, y) || inLetter(x + d, y) || inLetter(x - d, y) || inLetter(x, y + d) || inLetter(x, y - d); };
+  cv.addEventListener('pointerdown', e => { if (finished) return; drawing = true; last = pos(e); cv.setPointerCapture(e.pointerId); sfx.tap(); });
+  cv.addEventListener('pointermove', e => {
+    if (!drawing) return; const p = pos(e);
+    [ctx, ic].forEach(c => { c.beginPath(); c.moveTo(...last); c.lineTo(...p); c.stroke(); });
+    last = p; pts++; if (!near(...p)) outside++;
+  });
+  const up = async () => {
+    if (!drawing) return; drawing = false; lifts++;
+    const id = ic.getImageData(0, 0, size, size).data;
+    const covered = targets.filter(([x, y]) => id[(y * size + x) * 4 + 3] > 0).length / targets.length;
+    if (covered >= 0.6 && outside / Math.max(pts, 1) < 0.35) {
+      finished = true; sfx.yay(); confetti(); markCorrect('letters', 'write' + L);
+      const ok = await seq([`You wrote ${L}! ${pick(['Beautiful!', 'Wow!', 'Super writing!'])}`, 'en', 'excited'], [pick(PRAISE_JA), 'ja', 'excited']);
+      if (ok) setTimeout(() => trace(count + 1, letters), 300);
+    } else if (lifts % 3 === 0) {
+      hush(); say(covered < 0.6 ? `Keep going! Color in all of ${L}!` : `Try to stay inside the ${L}!`, 'en', 'calm');
+    }
+  };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  $('#clr').onclick = () => { sfx.whoosh(); guide(); ic.clearRect(0, 0, size, size); pts = outside = 0; };
+  const ask = () => seq([`Let's write ${L}! Trace the yellow ${L} with your finger.`, 'en', 'excited']);
+  ask();
+}
+
+// ---- ABC explorer: tap any letter ----
+function abcExplorer() {
+  render(`<div class="keys">${ABC.map(L => `<button class="key ${state.letters[L] ? 'seen' : ''}" data-l="${L}">${L}</button>`).join('')}</div><div class="say"></div>`,
+    { home: true, ear: () => seq(['Tap a letter!', 'en', 'excited']) });
+  app.querySelectorAll('.key').forEach(k => k.onclick = () => {
+    const it = item(k.dataset.l); sfx.boing();
+    const o = document.createElement('div'); o.className = 'overlay';
+    o.innerHTML = `<div class="big-letter boing">${it.L}</div>${letterArt(it)}<div class="word">${it.en}<span class="ja">${it.ja}</span></div><div class="say"></div><div class="muted">tap to close / とじる</div>`;
+    o.onclick = () => { hush(); sfx.whoosh(); o.remove(); };
+    app.appendChild(o);
+    hush(); seq([`${it.L}!`, 'en', 'excited'], [`${it.L} says ${it.snd}!`, 'en', 'slow'], [forLine(it), 'en', 'sing'], [it.ja, 'ja']);
+  });
+  seq(['Tap a letter!', 'en', 'excited']);
+}
+
+// ---- 123 explorer: tap a number, watch the ten-frames fill ----
+function numExplorer() {
+  render(`<div class="keys">${Array.from({ length: 20 }, (_, i) => `<button class="key" data-n="${i + 1}">${i + 1}</button>`).join('')}</div><div class="say"></div>`,
+    { home: true, ear: () => seq(['Tap a number!', 'en', 'excited']) });
+  app.querySelectorAll('.key').forEach(k => k.onclick = async () => {
+    const n = +k.dataset.n; sfx.boing();
+    const frames = n > 10 ? 2 : 1;
+    const o = document.createElement('div'); o.className = 'overlay';
+    o.innerHTML = `<div class="big-letter boing">${n}</div><div class="frames">${Array.from({ length: frames }, (_, f) =>
+      `<div class="frame">${Array.from({ length: 10 }, (_, c) => `<i data-c="${f * 10 + c + 1}"></i>`).join('')}</div>`).join('')}</div>
+      <div class="word">${EN_NUM[n]}<span class="ja">${JA_NUM[n]}</span></div><div class="say"></div><div class="muted">tap to close / とじる</div>`;
+    let open = true;
+    o.onclick = () => { open = false; hush(); sfx.whoosh(); o.remove(); };
+    app.appendChild(o);
+    hush();
+    for (let c = 1; c <= n && open; c++) { o.querySelector(`[data-c="${c}"]`).classList.add('on'); sfx.count(c); await wait(170); }
+    if (!open) return;
+    if (n > 10) seq([`Ten... and ${EN_NUM[n - 10]}... makes ${EN_NUM[n]}!`, 'en', 'sing'], [`じゅう と ${JA_NUM[n - 10]}で、${JA_NUM[n]}！`, 'ja', 'normal']);
+    else seq([`${EN_NUM[n]}!`, 'en', 'excited'], [JA_NUM[n] + '！', 'ja', 'normal']);
+  });
+  seq(['Tap a number!', 'en', 'excited']);
+}
+
+// ================= parent gate: hold the gear for 2 seconds =================
 function bindParentGate() {
-  const g = document.getElementById('gear'); let t = null;
+  const g = $('#gear'); let t = null;
   const startHold = e => { e.preventDefault(); g.classList.add('holding'); t = setTimeout(parentPanel, 2000); };
   const endHold = () => { g.classList.remove('holding'); clearTimeout(t); };
   g.addEventListener('touchstart', startHold, { passive: false }); g.addEventListener('mousedown', startHold);
   ['touchend', 'touchcancel', 'mouseup', 'mouseleave'].forEach(ev => g.addEventListener(ev, endHold));
 }
 function parentPanel() {
-  const rowsL = LETTERS.map(x => {
-    const r = state.letters[x.L]; const d = r?.days.length || 0;
-    return `<tr><td><b>${x.L}</b></td><td>${d}/${MASTERY_DAYS} days ${d >= MASTERY_DAYS ? '✅' : ''}</td><td class="muted">${r ? `${r.misses} misses / ${r.tries} tries` : '—'}</td></tr>`;
+  playing = false;
+  const shown = ORDER.filter((L, i) => state.letters[L] || state.letters['write' + L] || i < 5);
+  const rowsL = shown.map(L => {
+    const r = state.letters[L], w = state.letters['write' + L]; const d = r?.days.length || 0;
+    return `<tr><td><b>${L}</b></td><td>${d}/${MASTERY_DAYS} days ${d >= MASTERY_DAYS ? '✅' : ''}</td><td class="muted">${r ? `${r.misses} misses / ${r.tries} tries` : '—'}${w ? ' · wrote ✏️' : ''}</td></tr>`;
   }).join('');
-  const rowsN = Object.entries(state.numbers).map(([k, r]) =>
-    `<tr><td>${k}</td><td>${r.days.length} days</td><td class="muted">${r.misses} misses / ${r.tries} tries</td></tr>`).join('') || '<tr><td class="muted">—</td></tr>';
+  const rowsN = Object.entries(state.numbers).filter(([k]) => !k.startsWith('write')).sort().map(([k, r]) =>
+    `<tr><td>${k}</td><td>${r.days.length} days ${r.days.length >= MASTERY_DAYS ? '✅' : ''}</td><td class="muted">${r.misses} misses / ${r.tries} tries</td></tr>`).join('') || '<tr><td class="muted">—</td></tr>';
   const last7 = Array.from({ length: 7 }, (_, i) => { const d = new Date(Date.now() - i * 864e5).toLocaleDateString('en-CA');
-    return `${d.slice(5)}: ${state.sessions[d] || 0} sessions, ${state.minutes[d] || 0} min`; }).join('<br>');
+    return `${d.slice(5)}: ${Math.round((state.secs[d] || 0) / 60)} min${state.lessonDone[d] ? ' · lesson ✓' : ''}`; }).join('<br>');
   render(`<div class="panel">
     <h2>Parents / 保護者</h2>
+    <b>Daily play limit</b> <span class="muted">(today: ${Math.round((state.secs[today()] || 0) / 60)} min)</span><div>
+      ${[10, 20, 30, 45].map(m => `<button class="btn lim ${state.limit === m ? 'on' : ''}" data-m="${m}">${m} min</button>`).join('')}
+      <button class="btn" id="plus">+10 min today</button></div><br>
     <b>Letters</b><table>${rowsL}</table>
     <b>Numbers</b><table>${rowsN}</table>
     <b>Last 7 days</b><div class="muted">${last7}</div><br>
     <b>Child's name</b><div><input id="kidname" value="${state.name.replace(/"/g, '&quot;')}" placeholder="name" style="font-size:18px;padding:8px;border-radius:10px;border:1px solid #E3CFAF"></div><br>
     <b>Toshi photo</b><div><input type="file" accept="image/*" id="photo"></div><br>
-    <button class="btn" id="again">One more session today</button>
+    <button class="btn" id="relesson">Redo today's lesson</button>
     <button class="btn" id="clearphoto">Use drawn Toshi</button>
     <button class="btn" id="reset">Reset progress</button>
     <button class="btn" id="back">Close</button>
-    <p class="muted">All data stays on this device. Together-mode tip: after the session, ask "What else starts with ${(LETTERS.find(x => !mastered('letters', x.L)) || LETTERS[0]).L}?"</p>
+    <p class="muted">All data stays on this device. Together-mode tip: ask "What else starts with ${(ORDER.find(L => !mastered('letters', L)) || 'D')}?"</p>
   </div>`);
-  document.getElementById('photo').onchange = e => {
+  app.querySelectorAll('.lim').forEach(b => b.onclick = () => { state.limit = +b.dataset.m; save(); parentPanel(); });
+  $('#plus').onclick = () => { state.secs[today()] = Math.max(0, (state.secs[today()] || 0) - 600); save(); parentPanel(); };
+  $('#photo').onchange = e => {
     const f = e.target.files[0]; if (!f) return;
     const img = new Image(); img.onload = () => {
       const c = document.createElement('canvas'); const s = 320; c.width = c.height = s;
@@ -425,11 +814,11 @@ function parentPanel() {
       state.photo = c.toDataURL('image/jpeg', 0.85); save(); parentPanel();
     }; img.src = URL.createObjectURL(f);
   };
-  document.getElementById('again').onclick = () => { state.sessions[today()] = Math.max(0, (state.sessions[today()] || 0) - 1); save(); startScreen(); };
-  document.getElementById('clearphoto').onclick = () => { state.photo = null; save(); parentPanel(); };
-  document.getElementById('reset').onclick = () => { if (confirm('Reset all progress?')) { state.letters = {}; state.numbers = {}; state.sessions = {}; state.minutes = {}; save(); parentPanel(); } };
-  document.getElementById('kidname').onchange = e => { state.name = e.target.value.trim(); save(); };
-  document.getElementById('back').onclick = startScreen;
+  $('#kidname').onchange = e => { state.name = e.target.value.trim(); ORDER = buildOrder(); save(); };
+  $('#relesson').onclick = () => { delete state.lessonDone[today()]; save(); startScreen(); };
+  $('#clearphoto').onclick = () => { state.photo = null; save(); parentPanel(); };
+  $('#reset').onclick = () => { if (confirm('Reset all progress?')) { Object.assign(state, { letters: {}, numbers: {}, sessions: {}, secs: {}, lessonDone: {} }); save(); parentPanel(); } };
+  $('#back').onclick = startScreen;
 }
 
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
