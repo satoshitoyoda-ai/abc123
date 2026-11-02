@@ -168,7 +168,28 @@
   .frame i { width: min(9vw, 44px); height: min(9vw, 44px); border-radius: 50%; border: 3px dashed #E3CFAF; }
   .frame i.on { background: var(--accent); border: 3px solid var(--accent-deep); animation: boing .4s; }
 
+  /* ---- spell it ---- */
+  .slots { display: flex; gap: min(2vw, 10px); flex-wrap: wrap; justify-content: center; }
+  .slot { width: min(15vw, 90px); height: min(15vw, 90px); border-radius: 20px; border: 4px dashed #E3CFAF; background: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: min(11vw, 64px); font-weight: 800; }
+  .slot.filled { background: var(--accent); border: 4px solid var(--accent-deep); animation: boing .4s; }
+  .ghost { color: #EADBC4; }
+  .btn.choice.sm { width: min(17vw, 120px); height: min(17vw, 120px); font-size: min(12vw, 72px); }
+  .btn.used { visibility: hidden; }
+
+  /* ---- number match / which is more ---- */
+  .mcard { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 10px; min-width: min(26vw, 170px); min-height: min(26vw, 170px); }
+  .mcard .die-face { width: min(22vw, 120px); height: min(22vw, 120px); }
+  .frame.mini { gap: 3px; padding: 5px; border-radius: 10px; box-shadow: none; border: 2px solid #F0E6D6; }
+  .frame.mini i { width: min(4.2vw, 20px); height: min(4.2vw, 20px); border-width: 2px; }
+  .btn.side { width: min(42vw, 320px); min-height: min(42vw, 260px); font-size: min(8vw, 44px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+  .side .pile { gap: 2px; }
+  .side .cnt { font-size: min(9vw, 48px); }
+
   /* ---- parents ---- */
+  .panel .daybtn { min-height: 40px; padding: 6px 10px; }
+  .panel td.lv { white-space: nowrap; }
+  .panel .lvbtn { min-height: 36px; padding: 2px 12px; margin: 0 2px; }
   .panel { background: var(--card); border-radius: 20px; padding: 20px; max-width: 560px; width: 100%; text-align: left; font-size: 17px; line-height: 1.5; }
   .panel h2 { margin: 0 0 8px; font-size: 22px; }
   .panel table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; }
@@ -216,7 +237,7 @@ const MASTERY_DAYS = 3;   // correct on 3 separate days = mastered
 const KEY = 'abc123-v1';
 function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
-const state = Object.assign({ letters: {}, numbers: {}, sessions: {}, secs: {}, lessonDone: {}, photo: null, name: '', limit: 20 }, load());
+const state = Object.assign({ letters: {}, numbers: {}, sessions: {}, secs: {}, lessonDone: {}, levels: {}, log: [], photo: null, name: '', limit: 20 }, load());
 // The child's name lives only on the device (set in the parent panel) — never in the published code.
 const kid = () => state.name || 'friend';
 const buildOrder = () => { const own = [...new Set(state.name.toUpperCase().replace(/[^A-Z]/g, '').split(''))]; return [...own, ...BASE_ORDER.filter(L => !own.includes(L))]; };
@@ -227,8 +248,34 @@ function markCorrect(bucket, key) { const r = rec(bucket, key); r.tries++; if (!
 function markMiss(bucket, key) { const r = rec(bucket, key); r.tries++; r.misses++; save(); }
 const mastered = (bucket, key) => (state[bucket][key]?.days.length || 0) >= MASTERY_DAYS;
 const knownLetters = () => { const s = ORDER.filter(L => state.letters[L]); return s.length >= 3 ? s : ORDER.slice(0, 5); };
-const countMax = () => Object.keys(state.numbers).filter(k => k.startsWith('count') && mastered('numbers', k)).length >= 3 ? 8 : 5;
 if ('storage' in navigator && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+
+// ================= levels + play log (parents only — the child never sees levels or scores) =================
+// 3 first-try rounds in a row → up one level; 2 rounds in a row that needed help → down one (plan §4-5).
+const LEVEL_MAX = { find: 3, count: 4, feed: 3, look: 3, walk: 2, pop: 3, sound: 3, puzzle: 3, match: 3, more: 3 };
+const lvl = g => Math.min(state.levels[g]?.lv || 1, LEVEL_MAX[g] || 1);
+const clock = () => new Date().toTimeString().slice(0, 5);
+const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+// misses: 0 = first try, 1 = second try, 2+ = needed help (the answer was shown).
+function logPlay(g, q, misses, note) {
+  const L = state.levels[g] || (state.levels[g] = { lv: 1, run: 0, hard: 0 });
+  const lv = lvl(g); let ch = '';
+  if (LEVEL_MAX[g]) {
+    if (misses === 0) { L.hard = 0; if (++L.run >= 3 && L.lv < LEVEL_MAX[g]) { L.lv++; L.run = 0; ch = 'up'; } }
+    else { L.run = 0; if (misses < 2) L.hard = 0; else if (++L.hard >= 2 && L.lv > 1) { L.lv--; L.hard = 0; ch = 'down'; } }
+  }
+  state.log.push({ d: today(), t: clock(), g, lv, q, m: misses, ls: !!lesson, ch, note });
+  if (state.log.length > 1500) state.log.splice(0, state.log.length - 1500);
+  save();
+}
+// Explorer taps: one log line per visit, listing what was tapped.
+let visit = 0;
+function logTap(g, label) {
+  const e = state.log[state.log.length - 1];
+  if (e && e.v === visit && e.g === g) e.q += ', ' + label;
+  else state.log.push({ d: today(), t: clock(), g, q: 'Tapped ' + label, m: -1, v: visit });
+  save();
+}
 
 // Daily play-time cap (minutes, set in the parent panel). Counted only while the app is on screen.
 let playing = false;
@@ -417,7 +464,7 @@ function letterCard(it, next) {
 }
 
 function findIt(it, next, pool) {
-  const others = shuffle((pool || 'CEFHKMORSTUVWXZ'.split('')).filter(c => c !== it.L)).slice(0, 2);
+  const others = shuffle((pool || 'CEFHKMORSTUVWXZ'.split('')).filter(c => c !== it.L)).slice(0, lvl('find'));   // 2, 3 or 4 choices
   const opts = shuffle([it.L, ...others]);
   let misses = 0, finished = false;
   render(`${toshi('small')}<div class="row">${opts.map(c => `<button class="btn choice" data-c="${c}">${c}</button>`).join('')}</div>
@@ -429,6 +476,7 @@ function findIt(it, next, pool) {
     if (c === it.L) {
       finished = true; b.classList.add('good'); celebrate();
       if (misses === 0) markCorrect('letters', it.L);
+      logPlay('find', `Find ${it.L}`, misses);
       const ok = await seq([`Yes! That's ${it.L}! ${praise()}`, 'en', 'excited']);
       if (ok) setTimeout(next, 300);
     } else {
@@ -487,10 +535,14 @@ const GAMES = [
   { id: 'pop',   emoji: '🎈', en: 'Pop!',         ja: 'ふうせん',     run: () => balloons() },
   { id: 'write', emoji: '✏️', en: 'Write',        ja: 'かいてみよう', run: () => trace() },
   { id: 'find',  emoji: '🔍', en: 'Find it',      ja: 'みつけて',     run: () => findRound(3) },
+  { id: 'sound', emoji: '👂', en: 'First sound',  ja: 'はじめのおと', run: () => firstSound(4) },
+  { id: 'puzzle',emoji: '🧩', en: 'Spell it',     ja: 'ならべよう',   run: () => puzzle(2) },
   { id: 'count', emoji: '🍎', en: 'How many?',    ja: 'いくつ？',     run: () => howMany(3, playground) },
   { id: 'feed',  emoji: '🦴', en: 'Feed Toshi',   ja: 'ごはん',       run: () => feedToshi(3) },
   { id: 'look',  emoji: '👀', en: 'Quick look',   ja: 'パッとみて',   run: () => quickLook(4) },
-  { id: 'walk',  emoji: '🐾', en: "Toshi's walk", ja: 'おさんぽ',     run: () => walk(mastered('numbers', 'walk10') || (state.numbers.walk10?.days.length || 0) >= 2 ? 20 : 10, playground) },
+  { id: 'match', emoji: '🃏', en: 'Number match', ja: 'かずあわせ',   run: () => numMatch(4) },
+  { id: 'more',  emoji: '⚖️', en: 'Which is more?', ja: 'どっちがおおい？', run: () => moreLess(4) },
+  { id: 'walk',  emoji: '🐾', en: "Toshi's walk", ja: 'おさんぽ',     run: () => walk(lvl('walk') === 2 ? 20 : 10, playground) },
   { id: '123',   emoji: '🔢', en: '123',          ja: 'すうじ',       run: () => numExplorer() },
 ];
 function playground(greet) {
@@ -520,7 +572,7 @@ function findRound(rounds) {
 
 // ---- How many? (touch-count, then the cardinal question) ----
 function howMany(rounds, done, round = 0, last = 0) {
-  const max = countMax();
+  const max = [3, 5, 8, 10][lvl('count') - 1];
   let n = 1 + rand(max); if (n === last) n = n % max + 1;
   if (lesson) lesson.number = n;
   const thing = pick(['🍎', '🐟', '🚚', '⚽', '🦆', '🍪']);
@@ -547,6 +599,7 @@ function howMany(rounds, done, round = 0, last = 0) {
       if (x === n) {
         finished = true; b.classList.add('good'); celebrate();
         if (misses === 0) markCorrect('numbers', 'count' + n);
+        logPlay('count', `Count ${n} ${thing}`, misses);
         const ok = await seq([`Yes! ${EN_NUM[n]}! ${praise()}`, 'en', 'excited'], [`${JA_NUM[n]}！ ${pick(PRAISE_JA)}`, 'ja', 'excited']);
         if (ok) setTimeout(() => round + 1 < rounds ? howMany(rounds, done, round + 1, n) : done(), 300);
       } else {
@@ -588,6 +641,7 @@ function walk(goal, done) {
       draw(true); sfx.count(pos); await say(EN_NUM[pos] + '!', 'en', 'sing', pos * 0.03);
       if (pos === goal) {
         confetti(); sfx.yay(); markCorrect('numbers', 'walk' + goal); if (lesson) lesson.number = goal;
+        logPlay('walk', `Walked 1 to ${goal}`, 0);
         const ok = await seq([`${EN_NUM[goal]}! Toshi made it home! You counted every step!`, 'en', 'excited'], [`${JA_NUM[goal]}！ゴール！`, 'ja', 'excited']);
         if (ok) setTimeout(done, 400);
       }
@@ -599,9 +653,9 @@ function walk(goal, done) {
 
 // ---- Feed Toshi: "give me N" ----
 function feedToshi(rounds, round = 0, last = 0) {
-  const max = Math.min(countMax(), 10);
+  const max = [3, 5, 10][lvl('feed') - 1];
   let n = 1 + rand(max); if (n === last) n = n % max + 1;
-  let inBowl = 0, finished = false;
+  let inBowl = 0, finished = false, misses = 0;
   const draw = () => {
     render(`${toshi()}<div class="bowl" id="bowl">${'<button class="bone in">🦴</button>'.repeat(inBowl)}</div>
       <div class="pile">${'<button class="bone out">🦴</button>'.repeat(10 - inBowl)}</div>
@@ -614,10 +668,11 @@ function feedToshi(rounds, round = 0, last = 0) {
       if (finished) return;
       if (inBowl === n) {
         finished = true; celebrate(); markCorrect('numbers', 'give' + n);
+        logPlay('feed', `Give ${n} bones`, misses);
         const ok = await seq([`Yum yum! ${EN_NUM[n]} bones! Thank you!`, 'en', 'excited'], [`ほね ${JA_HON[n]}、ありがとう！`, 'ja', 'excited']);
         if (ok) setTimeout(() => round + 1 < rounds ? feedToshi(rounds, round + 1, n) : playground(), 300);
       } else {
-        markMiss('numbers', 'give' + n); sfx.soft(); react('think');
+        misses++; markMiss('numbers', 'give' + n); sfx.soft(); react('think');
         await seq([`That's ${EN_NUM[inBowl]}. Toshi wants ${EN_NUM[n]}. ${inBowl > n ? 'Take some back!' : 'A little more!'}`, 'en', 'calm']);
       }
     };
@@ -628,10 +683,11 @@ function feedToshi(rounds, round = 0, last = 0) {
 
 // ---- Quick look: see a dot pattern, say how many without counting ----
 function quickLook(rounds, round = 0, last = 0) {
-  let n = 1 + rand(5); if (n === last) n = n % 5 + 1;
+  const top = [3, 5, 6][lvl('look') - 1];
+  let n = 1 + rand(top); if (n === last) n = n % top + 1;
   let misses = 0, finished = false;
   const dots = `<div class="flash" id="flash">${Array.from({ length: 9 }, (_, k) => `<i class="${DICE[n].includes(k) ? 'on' : ''}"></i>`).join('')}</div>`;
-  const opts = shuffle([n, ...shuffle([1, 2, 3, 4, 5].filter(x => x !== n)).slice(0, 2)]);
+  const opts = shuffle([n, ...shuffle(range(1, top).filter(x => x !== n)).slice(0, 2)]);
   render(`<div id="slot">${dots}</div><div class="row">${opts.map(x => `<button class="btn choice" data-n="${x}">${x}</button>`).join('')}</div><div class="say"></div>`,
     { ear: () => show(), home: true });
   const show = async () => { if (!$('#slot')) return; $('#slot').innerHTML = dots; sfx.whoosh(); await wait(1500); if (!finished && $('#slot')) $('#slot').innerHTML = '<div class="flash hidden">?</div>'; };
@@ -639,6 +695,7 @@ function quickLook(rounds, round = 0, last = 0) {
     if (finished) return;
     if (+b.dataset.n === n) {
       finished = true; b.classList.add('good'); $('#slot').innerHTML = dots; sfx.yay(); confetti(); markCorrect('numbers', 'look' + n);
+      logPlay('look', `Quick look ${n} dots`, misses);
       const ok = await seq([`Yes! ${EN_NUM[n]}! Super eyes!`, 'en', 'excited'], [JA_NUM[n] + '！', 'ja', 'excited']);
       if (ok) setTimeout(() => round + 1 < rounds ? quickLook(rounds, round + 1, n) : playground(), 300);
     } else {
@@ -653,15 +710,16 @@ function quickLook(rounds, round = 0, last = 0) {
 function balloons() {
   const pool = knownLetters(), target = pick(pool);
   const colors = ['#FFC93C', '#FF8FA3', '#8FD3FF', '#9BE59B', '#C9A7FF', '#FFB36B'];
-  let hits = 0, done = false;
-  const letterFor = () => Math.random() < 0.45 ? target : pick(ABC.filter(c => c !== target && !'BDPQ'.includes(c)));
+  const lv = lvl('pop'), need = [3, 4, 5][lv - 1], slow = [12, 9, 7][lv - 1], share = [0.6, 0.45, 0.3][lv - 1];
+  let hits = 0, done = false, wrong = 0;
+  const letterFor = () => Math.random() < share ? target : pick(ABC.filter(c => c !== target && !'BDPQ'.includes(c)));
   render(`<div class="word">🎈 ${target}<span class="ja">${WORDS[target][1]}</span></div><div class="sky" id="sky"></div><div class="say"></div>`,
     { ear: () => ask(), home: true });
   const sky = $('#sky');
   for (let i = 0; i < 6; i++) {
     const b = document.createElement('button'); b.className = 'balloon';
     b.style.left = (4 + i * 16) + '%'; b.style.background = colors[i % colors.length];
-    b.style.setProperty('--dur', (9 + Math.random() * 5) + 's'); b.style.setProperty('--delay', (-Math.random() * 10) + 's');
+    b.style.setProperty('--dur', (slow + Math.random() * 4) + 's'); b.style.setProperty('--delay', (-Math.random() * 10) + 's');
     b.textContent = letterFor();
     b.addEventListener('pointerdown', async () => {
       if (done || b.classList.contains('popped')) return;
@@ -669,13 +727,14 @@ function balloons() {
         hits++; sfx.pop(); burst(b, ['✨', '⭐', '💛'], 8); b.classList.add('popped');
         setTimeout(() => { b.textContent = letterFor(); b.classList.remove('popped'); }, 1500);
         if (hits === 1) markCorrect('letters', target);
-        if (hits >= 4) {
+        if (hits >= need) {
           done = true; confetti(); sfx.yay();
+          logPlay('pop', `Pop ${need} ${target} balloons`, wrong === 0 ? 0 : wrong <= 2 ? 1 : 2, `${wrong} wrong taps`);
           const ok = await seq([`Pop pop pop! You found all the ${target}s!`, 'en', 'excited'], [pick(PRAISE_JA), 'ja', 'excited']);
           if (ok) setTimeout(playground, 300);
         } else { hush(); say(`${target}! ${pick(['Pop!', 'Yay!', 'Again!', 'Nice!'])}`, 'en', 'excited'); }
       } else {
-        b.classList.remove('wob'); void b.offsetWidth; b.classList.add('wob'); sfx.soft();
+        wrong++; b.classList.remove('wob'); void b.offsetWidth; b.classList.add('wob'); sfx.soft();
         hush(); say(`That's ${b.textContent}.`, 'en', 'calm');
       }
     });
@@ -725,6 +784,7 @@ function trace(count = 0, letters) {
     const covered = targets.filter(([x, y]) => id[(y * size + x) * 4 + 3] > 0).length / targets.length;
     if (covered >= 0.6 && outside / Math.max(pts, 1) < 0.35) {
       finished = true; sfx.yay(); confetti(); markCorrect('letters', 'write' + L);
+      logPlay('write', `Write ${L}`, lifts <= 2 ? 0 : lifts <= 4 ? 1 : 2, `${lifts} strokes`);
       const ok = await seq([`You wrote ${L}! ${pick(['Beautiful!', 'Wow!', 'Super writing!'])}`, 'en', 'excited'], [pick(PRAISE_JA), 'ja', 'excited']);
       if (ok) setTimeout(() => trace(count + 1, letters), 300);
     } else if (lifts % 3 === 0) {
@@ -739,10 +799,11 @@ function trace(count = 0, letters) {
 
 // ---- ABC explorer: tap any letter ----
 function abcExplorer() {
+  visit++;
   render(`<div class="keys">${ABC.map(L => `<button class="key ${state.letters[L] ? 'seen' : ''}" data-l="${L}">${L}</button>`).join('')}</div><div class="say"></div>`,
     { home: true, ear: () => seq(['Tap a letter!', 'en', 'excited']) });
   app.querySelectorAll('.key').forEach(k => k.onclick = () => {
-    const it = item(k.dataset.l); sfx.boing();
+    const it = item(k.dataset.l); sfx.boing(); logTap('abc', it.L);
     const o = document.createElement('div'); o.className = 'overlay';
     o.innerHTML = `<div class="big-letter boing">${it.L}</div>${letterArt(it)}<div class="word">${it.en}<span class="ja">${it.ja}</span></div><div class="say"></div><div class="muted">tap to close / とじる</div>`;
     o.onclick = () => { hush(); sfx.whoosh(); o.remove(); };
@@ -754,10 +815,11 @@ function abcExplorer() {
 
 // ---- 123 explorer: tap a number, watch the ten-frames fill ----
 function numExplorer() {
+  visit++;
   render(`<div class="keys">${Array.from({ length: 20 }, (_, i) => `<button class="key" data-n="${i + 1}">${i + 1}</button>`).join('')}</div><div class="say"></div>`,
     { home: true, ear: () => seq(['Tap a number!', 'en', 'excited']) });
   app.querySelectorAll('.key').forEach(k => k.onclick = async () => {
-    const n = +k.dataset.n; sfx.boing();
+    const n = +k.dataset.n; sfx.boing(); logTap('123', n);
     const frames = n > 10 ? 2 : 1;
     const o = document.createElement('div'); o.className = 'overlay';
     o.innerHTML = `<div class="big-letter boing">${n}</div><div class="frames">${Array.from({ length: frames }, (_, f) =>
@@ -775,16 +837,173 @@ function numExplorer() {
   seq(['Tap a number!', 'en', 'excited']);
 }
 
+// ---- First sound: which picture starts with this letter? (plan §4-2 Sound Play) ----
+function firstSound(rounds, round = 0, last = '') {
+  const lv = lvl('sound');
+  const pool = (lv === 3 ? ABC : knownLetters()).filter(L => L !== 'X' && L !== last);   // X is "fox" — doesn't start with X
+  const it = item(pick(pool));
+  // Never put two pictures with the same first sound side by side (C cat / K key).
+  const others = shuffle(ABC.filter(c => c !== 'X' && WORDS[c][3] !== it.snd)).slice(0, lv).map(item);   // 2, 3 or 4 pictures
+  const opts = shuffle([it, ...others]);
+  const art = o => o.emoji === 'TOSHI' ? '🐶' : o.emoji;
+  let misses = 0, finished = false;
+  render(`${toshi('small')}<div class="big-letter" style="font-size:min(20vw,120px);padding:6px 30px 12px">${it.L}</div>
+    <div class="row">${opts.map(o => `<button class="btn choice" data-l="${o.L}">${art(o)}</button>`).join('')}</div><div class="say"></div>`,
+    { ear: () => ask(), home: true });
+  const ask = () => seq([`Which one starts with ${it.snd}... ${it.L}?`, 'en', 'excited']);
+  app.querySelectorAll('.choice').forEach(b => b.onclick = async () => {
+    if (finished) return;
+    const o = item(b.dataset.l);
+    if (o.L === it.L) {
+      finished = true; b.classList.add('good'); celebrate(); logPlay('sound', `Starts with ${it.L} → ${it.en}`, misses);
+      const ok = await seq([`Yes! ${it.snd}... ${it.en}!`, 'en', 'excited'], [it.ja, 'ja']);
+      if (ok) setTimeout(() => round + 1 < rounds ? firstSound(rounds, round + 1, it.L) : playground(), 300);
+    } else {
+      misses++; b.classList.add('dim', 'shake'); sfx.soft(); react('think');
+      if (misses >= 2) app.querySelector(`[data-l="${it.L}"]`).classList.add('glow');
+      await seq([`That's ${o.en}. ${o.en} starts with ${o.snd}.`, 'en', 'calm']);
+    }
+  });
+  ask();
+}
+
+// ---- Spell it: put the letters in order (plan §4-2 Name Puzzle). Level 1 shows every letter faintly, level 2 only the first, level 3 none. ----
+const PUZZLE_WORDS = [
+  [['CAT', 'ねこ', '🐱'], ['DOG', 'いぬ', '🐶'], ['SUN', 'たいよう', '☀️'], ['PIG', 'ぶた', '🐷'], ['BUS', 'バス', '🚌'], ['HAT', 'ぼうし', '👒']],
+  [['FISH', 'さかな', '🐟'], ['BALL', 'ボール', '⚽'], ['MOON', 'つき', '🌙'], ['DUCK', 'あひる', '🦆'], ['FROG', 'かえる', '🐸'], ['LION', 'ライオン', '🦁']],
+  [['TOSHI', 'トシ', 'TOSHI'], ['APPLE', 'りんご', '🍎'], ['TRUCK', 'トラック', '🚚'], ['ZEBRA', 'しまうま', '🦓'], ['HORSE', 'うま', '🐴']],
+];
+function puzzle(rounds, round = 0) {
+  const lv = lvl('puzzle');
+  const own = state.name.toUpperCase().replace(/[^A-Z]/g, '');
+  // From level 2, every other word is the child's own name (when it's set on this device).
+  const useName = lv >= 2 && own.length >= 2 && own.length <= 8 && round % 2 === 0;
+  const [word, ja, art] = useName ? [own, '', 'NAME'] : pick(PUZZLE_WORDS[lv - 1]);
+  const letters = word.split('');
+  const tiles = shuffle(letters.map((c, i) => ({ c, i, used: false })));
+  let placed = 0, misses = 0, slotMiss = 0, finished = false;
+  const spoken = useName ? kid() : word === 'TOSHI' ? 'Toshi' : word.toLowerCase();
+  const pic = art === 'NAME' ? toshi('small') : art === 'TOSHI' ? `<div class="mini-toshi">${toshiSVG()}</div>` : `<div class="emoji">${art}</div>`;
+  const draw = () => {
+    render(`${pic}<div class="slots">${letters.map((c, i) => `<div class="slot ${i < placed ? 'filled' : ''}">${i < placed ? c
+        : (lv === 1 || (lv === 2 && i === 0)) ? `<span class="ghost">${c}</span>` : ''}</div>`).join('')}</div>
+      <div class="row">${tiles.map((t, k) => `<button class="btn choice sm ${t.used ? 'used' : ''}" data-k="${k}">${t.c}</button>`).join('')}</div>
+      <div class="say"></div>`, { ear: () => ask(), home: true });
+    if (slotMiss >= 2) { const k = tiles.findIndex(t => !t.used && t.c === letters[placed]); app.querySelector(`[data-k="${k}"]`)?.classList.add('glow'); }
+    app.querySelectorAll('.choice').forEach(b => b.onclick = async () => {
+      if (finished) return;
+      const t = tiles[+b.dataset.k];
+      if (t.used) return;
+      if (t.c === letters[placed]) {
+        t.used = true; placed++; slotMiss = 0; sfx.count(placed); draw();
+        if (placed === letters.length) {
+          finished = true; celebrate();
+          logPlay('puzzle', `Spell ${useName ? 'own name' : word}`, misses === 0 ? 0 : misses <= 2 ? 1 : 2, `${misses} wrong taps`);
+          const ok = await seq([letters.join('... ') + '!', 'en', 'sing'], [`${spoken}! ${praise()}`, 'en', 'excited'], ...(ja ? [[ja, 'ja']] : []));
+          if (ok) setTimeout(() => round + 1 < rounds ? puzzle(rounds, round + 1) : playground(), 300);
+        } else { await say(t.c + '!', 'en', 'excited'); }
+      } else {
+        misses++; slotMiss++; b.classList.add('shake'); sfx.soft(); react('think');
+        if (slotMiss >= 2) draw();
+        hush(); await say(`That's ${t.c}. We need ${letters[placed]}.`, 'en', 'calm');
+      }
+    });
+  };
+  const ask = () => seq([useName ? `Let's spell your name, ${kid()}!` : `Let's spell ${spoken}!`, 'en', 'excited'], [`Find ${letters[placed]}!`, 'en', 'normal']);
+  draw(); ask();
+}
+
+// ---- Number match: which picture shows this number? Level 1 = 1–5 dots, 2 = 1–10 ten-frame, 3 = 11–20 ----
+const tenFrames = (n, frames) => Array.from({ length: frames }, (_, f) =>
+  `<div class="frame mini">${Array.from({ length: 10 }, (_, c) => `<i class="${f * 10 + c < n ? 'on' : ''}"></i>`).join('')}</div>`).join('');
+function numMatch(rounds, round = 0, last = 0) {
+  const lv = lvl('match'), [lo, hi] = [[1, 5], [1, 10], [11, 20]][lv - 1];
+  let n = lo + rand(hi - lo + 1); if (n === last) n = n === hi ? lo : n + 1;
+  const opts = shuffle([n, ...shuffle(range(lo, hi).filter(x => x !== n)).slice(0, 2)]);
+  const card = x => lv === 1
+    ? `<div class="die-face">${Array.from({ length: 9 }, (_, k) => `<i class="${DICE[x].includes(k) ? 'on' : ''}"></i>`).join('')}</div>`
+    : tenFrames(x, lv === 3 ? 2 : 1);
+  const name = x => x > 10 ? `ten and ${EN_NUM[x - 10]}... ${EN_NUM[x]}` : EN_NUM[x];
+  let misses = 0, finished = false;
+  render(`${toshi('small')}<div class="big-letter" style="font-size:min(22vw,130px);padding:6px 34px 12px">${n}</div>
+    <div class="row">${opts.map(x => `<button class="btn mcard" data-n="${x}">${card(x)}</button>`).join('')}</div><div class="say"></div>`,
+    { ear: () => ask(), home: true });
+  const ask = () => seq([`Find ${EN_NUM[n]}!`, 'en', 'excited'], [`${JA_NUM[n]} は どれ？`, 'ja']);
+  app.querySelectorAll('.mcard').forEach(b => b.onclick = async () => {
+    if (finished) return;
+    const x = +b.dataset.n;
+    if (x === n) {
+      finished = true; b.classList.add('good'); celebrate(); logPlay('match', `Match ${n}`, misses);
+      const ok = await seq([`Yes! ${name(n)}!`, 'en', 'excited'], [JA_NUM[n] + '！', 'ja', 'excited']);
+      if (ok) setTimeout(() => round + 1 < rounds ? numMatch(rounds, round + 1, n) : playground(), 300);
+    } else {
+      misses++; b.classList.add('dim', 'shake'); sfx.soft(); react('think');
+      if (misses >= 2) app.querySelector(`.mcard[data-n="${n}"]`).classList.add('glow');
+      await seq([`That one is ${name(x)}.`, 'en', 'calm']);
+    }
+  });
+  ask();
+}
+
+// ---- Which is more? (plan §4-3 step 4: compare more/less). Level 1 = up to 5, far apart; 2 = up to 10; 3 = also asks "fewer". ----
+function moreLess(rounds, round = 0) {
+  const lv = lvl('more'), max = lv === 1 ? 5 : 10;
+  let a, b; do { a = 1 + rand(max); b = 1 + rand(max); } while (lv === 1 ? Math.abs(a - b) < 2 : a === b);
+  const fewer = lv === 3 && Math.random() < 0.5;
+  const ans = (fewer ? a < b : a > b) ? 0 : 1, big = Math.max(a, b), small = Math.min(a, b);
+  const thing = pick(['🍎', '🐟', '⚽', '🦆', '🍪', '🦴']);
+  let misses = 0, finished = false;
+  render(`${toshi('small')}<div class="row">${[a, b].map((x, i) => `<button class="btn side" data-s="${i}">
+      <div class="pile">${`<span>${thing}</span>`.repeat(x)}</div><div class="cnt"></div></button>`).join('')}</div><div class="say"></div>`,
+    { ear: () => ask(), home: true });
+  const ask = () => seq([fewer ? 'Which one has fewer?' : 'Which one has more?', 'en', 'excited'], [fewer ? 'すくないのは どっち？' : 'おおいのは どっち？', 'ja']);
+  const reveal = () => app.querySelectorAll('.side').forEach((s, i) => s.querySelector('.cnt').textContent = [a, b][i]);
+  app.querySelectorAll('.side').forEach(s => s.onclick = async () => {
+    if (finished) return;
+    if (+s.dataset.s === ans) {
+      finished = true; s.classList.add('good'); reveal(); celebrate();
+      logPlay('more', `${fewer ? 'Fewer' : 'More'}: ${a} vs ${b}`, misses ? 2 : 0);   // only 2 choices, so any miss counts as "needed help"
+      const ok = await seq([fewer ? `Yes! ${EN_NUM[small]} is fewer than ${EN_NUM[big]}!` : `Yes! ${EN_NUM[big]} is more than ${EN_NUM[small]}!`, 'en', 'excited'], [pick(PRAISE_JA), 'ja', 'excited']);
+      if (ok) setTimeout(() => round + 1 < rounds ? moreLess(rounds, round + 1) : playground(), 300);
+    } else {
+      misses++; s.classList.add('shake'); sfx.soft(); react('think'); reveal();
+      app.querySelector(`.side[data-s="${ans}"]`).classList.add('glow');
+      await seq([`Let's count. This one has ${EN_NUM[[a, b][+s.dataset.s]]}.`, 'en', 'calm']);
+    }
+  });
+  ask();
+}
+
 // ================= parent gate: hold the gear for 2 seconds =================
 function bindParentGate() {
   const g = $('#gear'); let t = null;
-  const startHold = e => { e.preventDefault(); g.classList.add('holding'); t = setTimeout(parentPanel, 2000); };
+  const startHold = e => { e.preventDefault(); g.classList.add('holding'); t = setTimeout(() => parentPanel(), 2000); };
   const endHold = () => { g.classList.remove('holding'); clearTimeout(t); };
   g.addEventListener('touchstart', startHold, { passive: false }); g.addEventListener('mousedown', startHold);
   ['touchend', 'touchcancel', 'mouseup', 'mouseleave'].forEach(ev => g.addEventListener(ev, endHold));
 }
-function parentPanel() {
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const gameLabel = g => { const x = GAMES.find(x => x.id === g); return x ? `${x.emoji} ${x.en}` : g === 'write' ? '✏️ Write' : g; };
+const RESULT = m => m < 0 ? '<span class="muted">explored</span>' : m === 0 ? '✅ first try' : m === 1 ? '🟡 2nd try' : '🔵 needed help';
+// "What he played": every round of a chosen day, newest first, with a per-game summary on top.
+function playReport(day) {
+  const entries = state.log.filter(e => e.d === day);
+  if (!entries.length) return '<div class="muted">Nothing played on this day.</div>';
+  const scored = entries.filter(e => e.m >= 0), first = scored.filter(e => e.m === 0).length;
+  const byGame = {};
+  scored.forEach(e => { const s = byGame[e.g] || (byGame[e.g] = { n: 0, first: 0, help: 0 }); s.n++; if (e.m === 0) s.first++; if (e.m >= 2) s.help++; });
+  const sum = Object.entries(byGame).map(([g, s]) =>
+    `<tr><td>${gameLabel(g)}</td><td>${s.n} round${s.n === 1 ? '' : 's'}</td><td class="muted">${s.first} first try${s.help ? ` · ${s.help} needed help` : ''}</td></tr>`).join('');
+  const rows = entries.slice().reverse().map(e => `<tr><td class="muted">${e.t}</td><td>${gameLabel(e.g)}${e.lv ? ` <span class="muted">L${e.lv}</span>` : ''}${e.ls ? ' <span class="muted">(lesson)</span>' : ''}</td>
+    <td>${esc(e.q)}${e.note ? ` <span class="muted">· ${esc(e.note)}</span>` : ''}</td>
+    <td>${RESULT(e.m)}${e.ch === 'up' ? ` · ⬆︎ L${e.lv + 1}` : e.ch === 'down' ? ` · ⬇︎ L${e.lv - 1}` : ''}</td></tr>`).join('');
+  return `<div><b>${scored.length}</b> rounds · <b>${scored.length ? Math.round(first / scored.length * 100) : 0}%</b> first try · ${Math.round((state.secs[day] || 0) / 60)} min${state.lessonDone[day] ? ' · lesson ✓' : ''}</div>
+    <table>${sum}</table><details><summary>Every round (${entries.length})</summary><table>${rows}</table></details>`;
+}
+function parentPanel(day) {
   playing = false;
+  const days = [...new Set([today(), ...state.log.map(e => e.d)])].sort().reverse().slice(0, 7);
+  if (!days.includes(day)) day = today();
   const shown = ORDER.filter((L, i) => state.letters[L] || state.letters['write' + L] || i < 5);
   const rowsL = shown.map(L => {
     const r = state.letters[L], w = state.letters['write' + L]; const d = r?.days.length || 0;
@@ -796,6 +1015,11 @@ function parentPanel() {
     return `${d.slice(5)}: ${Math.round((state.secs[d] || 0) / 60)} min${state.lessonDone[d] ? ' · lesson ✓' : ''}`; }).join('<br>');
   render(`<div class="panel">
     <h2>Parents / 保護者</h2>
+    <b>What was played</b><div>${days.map(d => `<button class="btn daybtn ${d === day ? 'on' : ''}" data-day="${d}">${d === today() ? 'Today' : d.slice(5)}</button>`).join('')}</div>
+    ${playReport(day)}<br>
+    <b>Levels</b> <span class="muted">(change on their own: 3 first-try rounds in a row → up, 2 rounds needing help in a row → down)</span>
+    <table>${Object.keys(LEVEL_MAX).map(g => `<tr><td>${gameLabel(g)}</td><td class="lv">
+      <button class="btn lvbtn" data-g="${g}" data-d="-1">−</button> ${lvl(g)} / ${LEVEL_MAX[g]} <button class="btn lvbtn" data-g="${g}" data-d="1">+</button></td></tr>`).join('')}</table>
     <b>Daily play limit</b> <span class="muted">(today: ${Math.round((state.secs[today()] || 0) / 60)} min)</span><div>
       ${[10, 20, 30, 45].map(m => `<button class="btn lim ${state.limit === m ? 'on' : ''}" data-m="${m}">${m} min</button>`).join('')}
       <button class="btn" id="plus">+10 min today</button></div><br>
@@ -814,7 +1038,12 @@ function parentPanel() {
     <button class="btn" id="back">Close</button>
     <p class="muted">All data stays on this device. Together-mode tip: ask "What else starts with ${(ORDER.find(L => !mastered('letters', L)) || 'D')}?"</p>
   </div>`);
-  app.querySelectorAll('.lim').forEach(b => b.onclick = () => { state.limit = +b.dataset.m; save(); parentPanel(); });
+  app.querySelectorAll('.daybtn').forEach(b => b.onclick = () => parentPanel(b.dataset.day));
+  app.querySelectorAll('.lvbtn').forEach(b => b.onclick = () => {
+    const g = b.dataset.g, L = state.levels[g] || (state.levels[g] = { lv: 1, run: 0, hard: 0 });
+    L.lv = Math.max(1, Math.min(LEVEL_MAX[g], lvl(g) + +b.dataset.d)); L.run = L.hard = 0; save(); parentPanel(day);
+  });
+  app.querySelectorAll('.lim').forEach(b => b.onclick = () => { state.limit = +b.dataset.m; save(); parentPanel(day); });
   $('#plus').onclick = () => { state.secs[today()] = Math.max(0, (state.secs[today()] || 0) - 600); save(); parentPanel(); };
   $('#photo').onchange = e => {
     const f = e.target.files[0]; if (!f) return;
@@ -837,7 +1066,7 @@ function parentPanel() {
   $('#kidname').onchange = e => { state.name = e.target.value.trim(); ORDER = buildOrder(); save(); };
   $('#relesson').onclick = () => { delete state.lessonDone[today()]; save(); startScreen(); };
   $('#clearphoto').onclick = () => { state.photo = null; save(); parentPanel(); };
-  $('#reset').onclick = () => { if (confirm('Reset all progress?')) { Object.assign(state, { letters: {}, numbers: {}, sessions: {}, secs: {}, lessonDone: {} }); save(); parentPanel(); } };
+  $('#reset').onclick = () => { if (confirm('Reset all progress?')) { Object.assign(state, { letters: {}, numbers: {}, sessions: {}, secs: {}, lessonDone: {}, levels: {}, log: [] }); save(); parentPanel(); } };
   $('#back').onclick = startScreen;
 }
 

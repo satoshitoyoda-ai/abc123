@@ -15,6 +15,11 @@ No accounts, ads, analytics or network calls. Name, photo and progress stay in t
 ## Updating
 After changing files, bump `VERSION` in `sw.js` so devices pick up the new version (open the app twice).
 
+## What's new in v0.3
+- 4 new games: **First sound** (which picture starts with this letter), **Spell it** (put letters in order; the child's own name from level 2), **Number match** (numeral → dots / ten-frames, up to 20), **Which is more?** (and "fewer" at level 3).
+- **Levels** for every scored game. 3 first-try rounds in a row → up one; 2 rounds in a row needing help → down one. The child never sees levels or scores.
+- **Parent view → "What was played":** pick a day to see rounds per game, % right on the first try, and every round with its time, level, question and result (first try / 2nd try / needed help, plus level changes). Levels can be set by hand there.
+
 ## What's in v0.1
 - Session: hello → letter card → find the letter (+1 review) → child picks *How many?* or *Toshi's walk* → EN/JP bridge → home mission → bye.
 - Two sessions a day, then "Toshi is resting".
